@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.160.0/http/mod.ts";
-import { createHost } from "./serverstate.ts";
+import { createHost, getGameByHostid } from "./serverstate.ts";
 
 function handleConnectHost(ws: WebSocket) {
   const hostId = generateHostId();
@@ -24,7 +24,13 @@ function handleConnectAttendeeResponse(
 }
 
 function generateHostId() {
-  return "0001";
+  let id: string;
+  do {
+    id = Math.floor(Math.random() * 998 + 1)
+      .toString().padStart(4, "0");
+  } while (getGameByHostid(id) !== null);
+
+  return id;
 }
 
 function generateAttendeeId() {
@@ -92,7 +98,7 @@ function reqHandler(req: Request) {
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
 
   ws.onopen = (ev) => handleConnected(ev);
-  ws.onmessage = (m) => handleMessage(ws, m.data);
+  ws.onmessage = (m) => handleMessage(ws, JSON.parse(m.data));
   ws.onclose = () => console.log("Disconnected from client ...");
   ws.onerror = (e) => handleError(e);
   return response;
