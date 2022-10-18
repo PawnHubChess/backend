@@ -1,12 +1,16 @@
 import { serve } from "https://deno.land/std@0.160.0/http/mod.ts";
 
-function handleConnectHost() {
+function handleConnectHost(ws: WebSocket) {
 }
 
-function handleConnectAttendeeRequest() {
+function handleConnectAttendeeRequest(ws: WebSocket, code: string) {
 }
 
-function handleConnectAttendeeResponse() {
+function handleConnectAttendeeResponse(
+  ws: WebSocket,
+  clientId: string,
+  accept: boolean,
+) {
 }
 
 function generateHostId() {
@@ -18,7 +22,7 @@ function generateAttendeeId() {
 }
 
 function handleMakeMove(ws: WebSocket, from: String, to: String) {
-  if (checkMoveValid("gameid", from, to)) {
+  if (checkMoveValid("hostId", from, to)) {
     ws.send(JSON.stringify({
       "type": "accept-move",
       "from": from,
@@ -28,7 +32,7 @@ function handleMakeMove(ws: WebSocket, from: String, to: String) {
   }
 }
 
-function checkMoveValid(gameid, from, to) {
+function checkMoveValid(hostId, from, to) {
   return true;
 }
 
@@ -44,9 +48,27 @@ function handleConnected(ev: Event) {
   console.log(ev);
 }
 
-function handleMessage(ws: WebSocket, data: string) {
-  console.log("CLIENT >> " + data);
-  ws.send(data as string);
+// deno-lint-ignore no-explicit-any
+function handleMessage(ws: WebSocket, data: any) {
+  switch (data.type) {
+    case "connect-host":
+      handleConnectHost(ws);
+      break;
+    case "connect-attendee":
+      handleConnectAttendeeRequest(ws, data.code);
+      break;
+    case "accept-attendee":
+      handleConnectAttendeeResponse(ws, data.clientId, true);
+      break;
+    case "decline-attendee":
+      handleConnectAttendeeResponse(ws, data.clientId, false);
+      break;
+    case "make-move":
+      handleMakeMove(ws, data.from, data.to);
+      break;
+    default:
+      console.log("Unknown message type: " + data.type);
+  }
 }
 
 function handleError(e: Event | ErrorEvent) {
