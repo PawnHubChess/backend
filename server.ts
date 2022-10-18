@@ -1,17 +1,16 @@
 import { serve } from "https://deno.land/std@0.160.0/http/mod.ts";
-import { Game } from "./game.ts";
-
-const games: Array<Game> = [];
+import { createHost } from "./serverstate.ts";
 
 function handleConnectHost(ws: WebSocket) {
   const hostId = generateHostId();
   //@ts-ignore Custom property added to the websocket
   ws.id = hostId;
-  games.push(new Game(hostId, ws));
+  createHost(hostId, ws);
+
   ws.send(JSON.stringify({
     "type": "connected-id",
     "id": hostId,
-  }))
+  }));
 }
 
 function handleConnectAttendeeRequest(ws: WebSocket, code: string) {
