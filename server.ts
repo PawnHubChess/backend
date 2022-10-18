@@ -1,7 +1,19 @@
 import { serve } from "https://deno.land/std@0.160.0/http/mod.ts";
-import { createHost, getGameByHostid } from "./serverstate.ts";
+import { createHost, gameExists, getGameByHostid } from "./serverstate.ts";
 
 function handleConnectHost(ws: WebSocket) {
+  //@ts-ignore Custom property added to the websocket
+  if (ws.id !== undefined && gameExists(ws.id)) {
+    // Error: Host is already connected and in a game
+    ws.send(JSON.stringify({
+     "type": "error",
+     "error": "already-connected",
+     "message": "Host is already connected and in a game",
+    }));
+
+    return;
+  }
+
   const hostId = generateHostId();
   //@ts-ignore Custom property added to the websocket
   ws.id = hostId;
@@ -28,7 +40,7 @@ function generateHostId() {
   do {
     id = Math.floor(Math.random() * 998 + 1)
       .toString().padStart(4, "0");
-  } while (getGameByHostid(id) !== null);
+  } while (gameExists(id));
 
   return id;
 }
