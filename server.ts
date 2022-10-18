@@ -1,5 +1,45 @@
 import { serve } from "https://deno.land/std@0.160.0/http/mod.ts";
 
+function handleConnectHost() {
+}
+
+function handleConnectAttendeeRequest() {
+}
+
+function handleConnectAttendeeResponse() {
+}
+
+function generateHostId() {
+  return "0001";
+}
+
+function generateAttendeeId() {
+  return "a1234";
+}
+
+function handleMakeMove(ws: WebSocket, from: String, to: String) {
+  if (checkMoveValid("gameid", from, to)) {
+    ws.send(JSON.stringify({
+      "type": "accept-move",
+      "from": from,
+      "to": to,
+    }));
+    // Send move to other client
+  }
+}
+
+function checkMoveValid(gameid, from, to) {
+  return true;
+}
+
+function checkGameWon() {
+}
+
+function handleGameWon() {
+}
+
+// WebSocket stuff
+
 function handleConnected(ev: Event) {
   console.log(ev);
 }
