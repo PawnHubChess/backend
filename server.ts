@@ -56,6 +56,7 @@ function handleAcceptAttendeeRequest(
   ws: WebSocket,
   clientId: string,
 ) {
+  //@ts-ignore Custom property added to the websocket
   if (!attendeeHostMatch(clientId, ws.id)) {
     // todo error: attendee and host do not match
     throw new Error("Attendee and host do not match");
@@ -92,7 +93,7 @@ function generateAttendeeId() {
   return "a1234";
 }
 
-function handleMakeMove(ws: WebSocket, from: String, to: String) {
+function handleMakeMove(ws: WebSocket, from: string, to: string) {
   if (checkMoveValid("hostId", from, to)) {
     ws.send(JSON.stringify({
       "type": "accept-move",
@@ -103,7 +104,7 @@ function handleMakeMove(ws: WebSocket, from: String, to: String) {
   }
 }
 
-function checkMoveValid(hostId, from, to) {
+function checkMoveValid(hostId: string, from: string, to:string) {
   return true;
 }
 
