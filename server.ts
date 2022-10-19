@@ -115,8 +115,10 @@ function handleGameWon() {
 
 // WebSocket stuff
 
-function handleConnected(ev: Event) {
-  console.log(ev);
+let clientscounter = 0;
+
+function handleConnected(ws: WebSocket, ev: Event) {
+  console.log(clientscounter++);
 }
 
 // deno-lint-ignore no-explicit-any
@@ -152,7 +154,7 @@ function reqHandler(req: Request) {
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
 
-  ws.onopen = (ev) => handleConnected(ev);
+  ws.onopen = (ev) => handleConnected(ws, ev);
   ws.onmessage = (m) => handleMessage(ws, JSON.parse(m.data));
   ws.onclose = () => console.log("Disconnected from client ...");
   ws.onerror = (e) => handleError(e);

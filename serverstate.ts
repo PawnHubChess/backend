@@ -37,13 +37,21 @@ function addAttendeeToGame(
 
 const pendingConnectRequests: Array<ConnectRequest> = [];
 
-export function createConnectRequest(attendeeId: string, connectTo: string, ws: WebSocket) {
+export function createConnectRequest(
+  attendeeId: string,
+  connectTo: string,
+  ws: WebSocket,
+) {
   const request = new ConnectRequest(attendeeId, connectTo, ws);
   pendingConnectRequests.push(request);
 }
 
-export function getConnectRequestByAttendeeId(attendeeId: string): ConnectRequest | null {
-  return pendingConnectRequests.filter((request) => request.attendeeId === attendeeId)[0] || null;
+export function getConnectRequestByAttendeeId(
+  attendeeId: string,
+): ConnectRequest | null {
+  return pendingConnectRequests.filter((request) =>
+    request.attendeeId === attendeeId
+  )[0] || null;
 }
 
 export function attendeeHostMatch(attendeeId: string, hostId: string): boolean {
@@ -61,6 +69,10 @@ export function acceptConnectRequest(attendeeId: string): Game {
     throw new Error("Connect request does not exist");
   }
 
-  const game = addAttendeeToGame(request.connectTo, request.attendeeId, request.ws);
+  const game = addAttendeeToGame(
+    request.connectTo,
+    request.attendeeId,
+    request.ws,
+  );
   return game;
 }
