@@ -6,7 +6,7 @@ import {
   createHost,
   gameExists,
   getGameByHostid,
-} from "./serverstate.ts";
+} from "../serverstate.ts";
 
 function handleConnectHost(ws: WebSocket) {
   //@ts-ignore Custom property added to the websocket
