@@ -1,8 +1,8 @@
-FROM denoland/deno:1.10.3
+FROM denoland/deno:alpine
 
 EXPOSE 3000
 
-WORKDIR /ap
+WORKDIR /app
 
 # Prefer not to run as root.
 USER deno
