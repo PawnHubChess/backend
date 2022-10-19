@@ -32,7 +32,11 @@ function handleConnectHost(ws: WebSocket) {
   }));
 }
 
-function handleConnectAttendeeRequest(ws: WebSocket, host: string, code: string) {
+function handleConnectAttendeeRequest(
+  ws: WebSocket,
+  host: string,
+  code: string,
+) {
   const attendeeId = generateAttendeeId();
 
   //@ts-ignore Custom property added to the websocket
@@ -56,6 +60,7 @@ function handleAcceptAttendeeRequest(
   ws: WebSocket,
   clientId: string,
 ) {
+  //@ts-ignore Custom property added to the websocket
   if (!attendeeHostMatch(clientId, ws.id)) {
     // todo error: attendee and host do not match
     throw new Error("Attendee and host do not match");
@@ -65,8 +70,8 @@ function handleAcceptAttendeeRequest(
     const game = acceptConnectRequest(clientId);
     game.attendeeWs?.send(JSON.stringify({
       "type": "connected-id",
-      "id": game.attendeeId
-    }))
+      "id": game.attendeeId,
+    }));
   } catch (e) {
     // todo error: connection request or host did not exist
   }
@@ -92,7 +97,7 @@ function generateAttendeeId() {
   return "a1234";
 }
 
-function handleMakeMove(ws: WebSocket, from: String, to: String) {
+function handleMakeMove(ws: WebSocket, from: string, to: string) {
   if (checkMoveValid("hostId", from, to)) {
     ws.send(JSON.stringify({
       "type": "accept-move",
@@ -103,7 +108,7 @@ function handleMakeMove(ws: WebSocket, from: String, to: String) {
   }
 }
 
-function checkMoveValid(hostId, from, to) {
+function checkMoveValid(hostId: string, from: string, to: string) {
   return true;
 }
 
