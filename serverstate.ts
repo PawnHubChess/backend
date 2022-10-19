@@ -1,3 +1,4 @@
+import { ConnectRequest } from "./connectrequest.ts";
 import { Game } from "./game.ts";
 
 const games: Array<Game> = [];
@@ -16,4 +17,11 @@ export function getGameByHostid(id: string): Game | null {
 
 export function gameExists(hostId: string): boolean {
   return getGameByHostid(hostId) !== null;
+}
+
+const pendingConnectRequests: Array<ConnectRequest> = [];
+
+export function createConnectRequest(attendeeId: string, connectTo: string, ws: WebSocket) {
+  const request = new ConnectRequest(attendeeId, connectTo, ws);
+  pendingConnectRequests.push(request);
 }

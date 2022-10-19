@@ -1,14 +1,19 @@
 import { serve } from "https://deno.land/std@0.160.0/http/mod.ts";
-import { createHost, gameExists, getGameByHostid } from "./serverstate.ts";
+import {
+  createConnectRequest,
+  createHost,
+  gameExists,
+  getGameByHostid,
+} from "./serverstate.ts";
 
 function handleConnectHost(ws: WebSocket) {
   //@ts-ignore Custom property added to the websocket
   if (ws.id !== undefined && gameExists(ws.id)) {
     // Error: Host is already connected and in a game
     ws.send(JSON.stringify({
-     "type": "error",
-     "error": "already-connected",
-     "message": "Host is already connected and in a game",
+      "type": "error",
+      "error": "already-connected",
+      "message": "Host is already connected and in a game",
     }));
 
     return;
@@ -26,6 +31,23 @@ function handleConnectHost(ws: WebSocket) {
 }
 
 function handleConnectAttendeeRequest(ws: WebSocket, code: string) {
+  const attendeeId = generateAttendeeId();
+
+  //@ts-ignore Custom property added to the websocket
+  ws.id = attendeeId;
+  createConnectRequest(attendeeId, code, ws);
+
+  const hostWs = getGameByHostid(code)?.hostWs;
+  if (!hostWs) {
+    // todo error: host does not exist
+    throw new Error("Host does not exist");
+  }
+
+  hostWs.send(JSON.stringify({
+    "type": "verify-attendee-request",
+    "clientId": attendeeId,
+    "code": code,
+  }));
 }
 
 function handleConnectAttendeeResponse(
