@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.160.0/http/mod.ts";
 import {
+  acceptConnectRequest,
+  attendeeHostMatch,
   createConnectRequest,
   createHost,
   gameExists,
@@ -50,10 +52,29 @@ function handleConnectAttendeeRequest(ws: WebSocket, code: string) {
   }));
 }
 
-function handleConnectAttendeeResponse(
+function handleAcceptAttendeeRequest(
   ws: WebSocket,
   clientId: string,
-  accept: boolean,
+) {
+  if (!attendeeHostMatch(clientId, ws.id)) {
+    // todo error: attendee and host do not match
+    throw new Error("Attendee and host do not match");
+  }
+
+  try {
+    const game = acceptConnectRequest(clientId);
+    game.attendeeWs?.send(JSON.stringify({
+      "type": "connected-id",
+      "id": game.attendeeId
+    }))
+  } catch (e) {
+    // todo error: connection request or host did not exist
+  }
+}
+
+function handleDeclineAttendeeRequest(
+  ws: WebSocket,
+  clientId: string,
 ) {
 }
 
@@ -107,11 +128,11 @@ function handleMessage(ws: WebSocket, data: any) {
     case "connect-attendee":
       handleConnectAttendeeRequest(ws, data.code);
       break;
-    case "accept-attendee":
-      handleConnectAttendeeResponse(ws, data.clientId, true);
+    case "accept-attendee-request":
+      handleAcceptAttendeeRequest(ws, data.clientId);
       break;
-    case "decline-attendee":
-      handleConnectAttendeeResponse(ws, data.clientId, false);
+    case "decline-attendee-request":
+      handleDeclineAttendeeRequest(ws, data.clientId);
       break;
     case "make-move":
       handleMakeMove(ws, data.from, data.to);
