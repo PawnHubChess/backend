@@ -1,4 +1,4 @@
-import { serve } from "./deps.ts";
+import { serve, uuid } from "./deps.ts";
 import {
   acceptConnectRequest,
   attendeeHostMatch,
@@ -79,7 +79,7 @@ function handleDeclineAttendeeRequest(
 ) {
 }
 
-function generateHostId() {
+function generateHostId(): string {
   let id: string;
   do {
     id = Math.floor(Math.random() * 998 + 1)
@@ -89,8 +89,8 @@ function generateHostId() {
   return id;
 }
 
-function generateAttendeeId() {
-  return "a1234";
+function generateAttendeeId() : string {
+  return uuid.generate() as string;
 }
 
 function handleMakeMove(ws: WebSocket, from: string, to: string) {
