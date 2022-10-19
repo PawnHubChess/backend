@@ -32,14 +32,14 @@ function handleConnectHost(ws: WebSocket) {
   }));
 }
 
-function handleConnectAttendeeRequest(ws: WebSocket, code: string) {
+function handleConnectAttendeeRequest(ws: WebSocket, host: string, code: string) {
   const attendeeId = generateAttendeeId();
 
   //@ts-ignore Custom property added to the websocket
   ws.id = attendeeId;
-  createConnectRequest(attendeeId, code, ws);
+  createConnectRequest(attendeeId, host, ws);
 
-  const hostWs = getGameByHostid(code)?.hostWs;
+  const hostWs = getGameByHostid(host)?.hostWs;
   if (!hostWs) {
     // todo error: host does not exist
     throw new Error("Host does not exist");
@@ -126,7 +126,7 @@ function handleMessage(ws: WebSocket, data: any) {
       handleConnectHost(ws);
       break;
     case "connect-attendee":
-      handleConnectAttendeeRequest(ws, data.code);
+      handleConnectAttendeeRequest(ws, data.host, data.code);
       break;
     case "accept-attendee-request":
       handleAcceptAttendeeRequest(ws, data.clientId);
