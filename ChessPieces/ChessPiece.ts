@@ -1,6 +1,6 @@
 import { BoardPosition } from "../BoardPosition.ts";
 
-abstract class ChessPiece {
+export abstract class ChessPiece {
     isWhite: boolean;
     
     constructor(isWhite: boolean) {
@@ -9,3 +9,10 @@ abstract class ChessPiece {
 
     abstract validateMove(from: BoardPosition, to: BoardPosition): boolean;
 }
+
+export { Pawn } from "./Pawn.ts"
+export { Bishop } from "./Bishop.ts"
+export { Knight } from "./Knight.ts"
+export { Rook } from "./Rook.ts"
+export { Queen } from "./Queen.ts"
+export { King } from "./King.ts"
