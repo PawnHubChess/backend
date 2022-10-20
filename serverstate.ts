@@ -1,5 +1,5 @@
 import { ConnectRequest } from "./connectrequest.ts";
-import { Game } from "./game.ts";
+import { Game } from "./Game.ts";
 
 const games: Array<Game> = [];
 

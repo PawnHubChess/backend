@@ -1,9 +1,10 @@
+import { Board } from "../Board.ts";
 import { BoardPosition } from "../BoardPosition.ts";
-import { ChessPiece } from "./ChessPiece.ts";
+import { ChessPiece } from "./_ChessPiece.ts";
 
 export class Queen extends ChessPiece {
 
-  validateMove(from: BoardPosition, to: BoardPosition): boolean {
+  validateMove(from: BoardPosition, to: BoardPosition, board: Board): boolean {
     return true;
   }
   

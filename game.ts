@@ -1,4 +1,4 @@
-import { Board } from "./board.ts";
+import { Board } from "./Board.ts";
 
 export class Game {
     hostId: string;
