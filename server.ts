@@ -151,7 +151,7 @@ function handleError(e: Event | ErrorEvent) {
 
 function reqHandler(req: Request) {
   if (req.headers.get("upgrade") != "websocket") {
-    return new Response(null, { status: 501 });
+    return Response.redirect("https://github.com/PawnHubChess/backend/wiki", 302);
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
 
