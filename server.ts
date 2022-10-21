@@ -2,6 +2,7 @@ import { serve, uuid } from "./deps.ts";
 import {
   acceptConnectRequest,
   attendeeHostMatch,
+  closeGameByHostId,
   createConnectRequest,
   createHost,
   gameExists,
@@ -116,10 +117,8 @@ function handleGameWon() {
 
 // WebSocket stuff
 
-let clientscounter = 0;
-
 function handleConnected(ws: WebSocket, ev: Event) {
-  console.log(clientscounter++);
+  
 }
 
 // deno-lint-ignore no-explicit-any
@@ -149,6 +148,26 @@ function handleError(e: Event | ErrorEvent) {
   console.log(e instanceof ErrorEvent ? e.message : e.type);
 }
 
+function handleDisconnect(ws: WebSocket) {
+  //@ts-ignore Custom property added to the websocket
+    const id = ws.id;
+    console.log(`Disconnected from client (${id})`);
+
+    if (!id) return;
+
+    if (id.length == 4) handleDisconnectHost(id);
+    else handleDisconnectAttendee(id);
+}
+
+function handleDisconnectHost(id: string) {
+  closeGameByHostId(id);
+}
+
+function handleDisconnectAttendee(id: string) {
+
+}
+
+
 function reqHandler(req: Request) {
   if (req.headers.get("upgrade") != "websocket") {
     return Response.redirect("https://github.com/PawnHubChess/backend/wiki", 302);
@@ -157,7 +176,7 @@ function reqHandler(req: Request) {
 
   ws.onopen = (ev) => handleConnected(ws, ev);
   ws.onmessage = (m) => handleMessage(ws, JSON.parse(m.data));
-  ws.onclose = () => console.log("Disconnected from client ...");
+  ws.onclose = () => handleDisconnect(ws)
   ws.onerror = (e) => handleError(e);
   return response;
 }

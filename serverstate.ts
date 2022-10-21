@@ -35,6 +35,12 @@ function addAttendeeToGame(
   return game;
 }
 
+export function closeGameByHostId(id: string) {
+  console.log(games)
+  games.splice(games.findIndex((game) => game.hostId == id), 1);
+  console.log(games)
+}
+
 const pendingConnectRequests: Array<ConnectRequest> = [];
 
 export function createConnectRequest(
