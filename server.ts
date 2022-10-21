@@ -6,7 +6,7 @@ import {
   createConnectRequest,
   createHost,
   gameExists,
-  getGameByHostid,
+  findGameByHostid,
 } from "./serverstate.ts";
 
 function handleConnectHost(ws: WebSocket) {
@@ -40,7 +40,7 @@ function handleConnectAttendeeRequest(ws: WebSocket, host: string, code: string)
   ws.id = attendeeId;
   createConnectRequest(attendeeId, host, ws);
 
-  const hostWs = getGameByHostid(host)?.hostWs;
+  const hostWs = findGameByHostid(host)?.hostWs;
   if (!hostWs) {
     // todo error: host does not exist
     throw new Error("Host does not exist");

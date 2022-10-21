@@ -11,12 +11,16 @@ export function createHost(hostId: string, ws: WebSocket) {
   games.push(new Game(hostId, ws));
 }
 
-export function getGameByHostid(id: string): Game | null {
-  return games.filter((game) => game.hostId === id)[0] || null;
+export function findGameByHostid(id: string): Game | undefined {
+  return games.find(game => game.hostId === id);
+}
+
+export function findGameByAttendeeId(id: string): Game | undefined {
+  return games.find(game => game.attendeeId === id);
 }
 
 export function gameExists(hostId: string): boolean {
-  return getGameByHostid(hostId) !== null;
+  return typeof findGameByHostid(hostId) !== "undefined";
 }
 
 function addAttendeeToGame(
@@ -24,7 +28,7 @@ function addAttendeeToGame(
   attendeeId: string,
   ws: WebSocket,
 ): Game {
-  const game = getGameByHostid(hostId);
+  const game = findGameByHostid(hostId);
   if (!game) {
     throw new Error("Game does not exist");
   }
@@ -37,8 +41,16 @@ function addAttendeeToGame(
 
 export function closeGameByHostId(id: string) {
   console.log(games)
-  games.splice(games.findIndex((game) => game.hostId == id), 1);
+  games.splice(games.findIndex(game => game.hostId == id), 1);
   console.log(games)
+}
+
+export function removeAttendeeFromGame(id: string) {
+  const game = findGameByAttendeeId(id)
+  if (!game) return
+  game.attendeeId = undefined
+  game.attendeeWs = undefined
+
 }
 
 const pendingConnectRequests: Array<ConnectRequest> = [];
