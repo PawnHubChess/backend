@@ -1,5 +1,5 @@
 import { serve } from "./deps.ts";
-import { handleConnectHost,handleConnectAttendeeRequest,handleAcceptAttendeeRequest,handleDeclineAttendeeRequest,handleMakeMove } from "./matchMaking.ts";
+import { handleConnectHost,handleConnectAttendeeRequest,handleAcceptAttendeeRequest,handleDeclineAttendeeRequest,handleMakeMove, handleConnected } from "./matchMaking.ts";
 import { closeGameByHostId, removeAttendeeFromGame } from "./serverstate.ts";
 
 export function checkMoveValid(hostId: string, from: string, to: string) {

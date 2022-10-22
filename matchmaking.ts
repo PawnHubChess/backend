@@ -2,7 +2,7 @@ import { generateAttendeeId, generateHostId } from "./clientIds.ts";
 import { checkMoveValid } from "./server.ts";
 import { acceptConnectRequest, createConnectRequest, createHost, declineAttendeeRequest, findGameByHostid } from "./serverstate.ts";
 
-function handleConnected(ws: WebSocket, ev: Event) {}
+export function handleConnected(ws: WebSocket, ev: Event) {}
 
 export function handleConnectHost(ws: WebSocket) {
   //@ts-ignore Custom property added to the websocket
