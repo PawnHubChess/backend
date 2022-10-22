@@ -1,6 +1,5 @@
 import { generateAttendeeId, generateHostId } from "./clientIds.ts";
-import { checkMoveValid } from "./server.ts";
-import { acceptConnectRequest, createConnectRequest, createHost, declineAttendeeRequest, findGameByHostid } from "./serverstate.ts";
+import { acceptConnectRequest, createConnectRequest, createHost, declineAttendeeRequest, findGameByHostid, attendeeHostMatch } from "./serverstate.ts";
 
 export function handleConnected(ws: WebSocket, ev: Event) {}
 
