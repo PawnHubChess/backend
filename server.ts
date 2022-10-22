@@ -1,6 +1,6 @@
 import { serve } from "./deps.ts";
 import { handleConnectHost,handleConnectAttendeeRequest,handleAcceptAttendeeRequest,handleDeclineAttendeeRequest,handleMakeMove } from "./matchMaking.ts";
-import { closeGameByHostId } from "./serverstate.ts";
+import { closeGameByHostId, removeAttendeeFromGame } from "./serverstate.ts";
 
 export function checkMoveValid(hostId: string, from: string, to: string) {
   return true;
@@ -53,10 +53,13 @@ function handleDisconnect(ws: WebSocket) {
 }
 
 function handleDisconnectHost(id: string) {
+  // todo notify attendee
   closeGameByHostId(id);
 }
 
 function handleDisconnectAttendee(id: string) {
+  removeAttendeeFromGame(id);
+  // todo notify host
 }
 
 function reqHandler(req: Request) {
