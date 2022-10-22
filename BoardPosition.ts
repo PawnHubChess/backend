@@ -6,4 +6,7 @@ export class BoardPosition {
         this.x = x;
         this.y = y;
     }
+
+    // todo parse from string
+    // todo toString
 }

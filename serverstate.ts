@@ -19,6 +19,10 @@ export function findGameByAttendeeId(id: string): Game | undefined {
   return games.find((game) => game.attendeeId === id);
 }
 
+export function findGameById(id: string): Game | undefined {
+  return games.find((game) => game.hostId === id || game.attendeeId === id);
+}
+
 export function gameExists(hostId: string): boolean {
   return typeof findGameByHostid(hostId) !== "undefined";
 }
@@ -102,7 +106,7 @@ export function declineAttendeeRequest(attendeeId: string): WebSocket {
   if (!request) {
     throw new Error("Connect request does not exist");
   }
-  const ws = request.ws
+  const ws = request.ws;
 
   removeAttendeeFromArray(attendeeId);
 
@@ -116,5 +120,4 @@ function removeAttendeeFromArray(attendeeId: string) {
     ),
     1,
   );
-
 }

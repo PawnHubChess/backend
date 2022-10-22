@@ -78,14 +78,3 @@ export function handleDeclineAttendeeRequest(clientId: string) {
   const clientWs = declineAttendeeRequest(clientId);
   clientWs.send(`{"type": "request-declined"}`);
 }
-
-export function handleMakeMove(ws: WebSocket, from: string, to: string) {
-  if (checkMoveValid("hostId", from, to)) {
-    ws.send(JSON.stringify({
-      "type": "accept-move",
-      "from": from,
-      "to": to,
-    }));
-    // Send move to other client
-  }
-}
