@@ -1,103 +1,8 @@
-import { generateAttendeeId, generateHostId } from "./clientIds.ts";
-import { serve, uuid } from "./deps.ts";
-import {
-  acceptConnectRequest,
-  attendeeHostMatch,
-  closeGameByHostId,
-  createConnectRequest,
-  createHost,
-  declineAttendeeRequest,
-  findGameByHostid,
-  gameExists,
-} from "./serverstate.ts";
+import { serve } from "./deps.ts";
+import { handleConnectHost,handleConnectAttendeeRequest,handleAcceptAttendeeRequest,handleDeclineAttendeeRequest,handleMakeMove } from "./matchMaking.ts";
+import { closeGameByHostId } from "./serverstate.ts";
 
-function handleConnectHost(ws: WebSocket) {
-  //@ts-ignore Custom property added to the websocket
-  if (ws.id !== undefined && gameExists(ws.id)) {
-    // Error: Host is already connected and in a game
-    ws.send(JSON.stringify({
-      "type": "error",
-      "error": "already-connected",
-      "message": "Host is already connected and in a game",
-    }));
-
-    return;
-  }
-
-  const hostId = generateHostId();
-  //@ts-ignore Custom property added to the websocket
-  ws.id = hostId;
-  createHost(hostId, ws);
-
-  ws.send(JSON.stringify({
-    "type": "connected-id",
-    "id": hostId,
-  }));
-}
-
-function handleConnectAttendeeRequest(
-  ws: WebSocket,
-  host: string,
-  code: string,
-) {
-  const attendeeId = generateAttendeeId();
-
-  //@ts-ignore Custom property added to the websocket
-  ws.id = attendeeId;
-  createConnectRequest(attendeeId, host, ws);
-
-  const hostWs = findGameByHostid(host)?.hostWs;
-  if (!hostWs) {
-    // todo error: host does not exist
-    throw new Error("Host does not exist");
-  }
-
-  hostWs.send(JSON.stringify({
-    "type": "verify-attendee-request",
-    "clientId": attendeeId,
-    "code": code,
-  }));
-}
-
-function handleAcceptAttendeeRequest(
-  ws: WebSocket,
-  clientId: string,
-) {
-  //@ts-ignore Custom property added to the websocket
-  if (!attendeeHostMatch(clientId, ws.id)) {
-    // todo error: attendee and host do not match
-    throw new Error("Attendee and host do not match");
-  }
-
-  try {
-    const game = acceptConnectRequest(clientId);
-    game.attendeeWs?.send(JSON.stringify({
-      "type": "connected-id",
-      "id": game.attendeeId,
-    }));
-    game.sendMatchedInfo();
-  } catch (e) {
-    // todo error: connection request or host did not exist
-  }
-}
-
-function handleDeclineAttendeeRequest(clientId: string,) {
-  const clientWs = declineAttendeeRequest(clientId);
-  clientWs.send(`{"type": "request-declined"}`);
-}
-
-function handleMakeMove(ws: WebSocket, from: string, to: string) {
-  if (checkMoveValid("hostId", from, to)) {
-    ws.send(JSON.stringify({
-      "type": "accept-move",
-      "from": from,
-      "to": to,
-    }));
-    // Send move to other client
-  }
-}
-
-function checkMoveValid(hostId: string, from: string, to: string) {
+export function checkMoveValid(hostId: string, from: string, to: string) {
   return true;
 }
 
@@ -108,9 +13,6 @@ function handleGameWon() {
 }
 
 // WebSocket stuff
-
-function handleConnected(ws: WebSocket, ev: Event) {
-}
 
 // deno-lint-ignore no-explicit-any
 function handleMessage(ws: WebSocket, data: any) {
