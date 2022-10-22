@@ -5,8 +5,9 @@ import {
   closeGameByHostId,
   createConnectRequest,
   createHost,
-  gameExists,
+  declineAttendeeRequest,
   findGameByHostid,
+  gameExists,
 } from "./serverstate.ts";
 
 function handleConnectHost(ws: WebSocket) {
@@ -33,7 +34,11 @@ function handleConnectHost(ws: WebSocket) {
   }));
 }
 
-function handleConnectAttendeeRequest(ws: WebSocket, host: string, code: string) {
+function handleConnectAttendeeRequest(
+  ws: WebSocket,
+  host: string,
+  code: string,
+) {
   const attendeeId = generateAttendeeId();
 
   //@ts-ignore Custom property added to the websocket
@@ -67,18 +72,17 @@ function handleAcceptAttendeeRequest(
     const game = acceptConnectRequest(clientId);
     game.attendeeWs?.send(JSON.stringify({
       "type": "connected-id",
-      "id": game.attendeeId
-    }))
-    game.sendMatchedInfo()
+      "id": game.attendeeId,
+    }));
+    game.sendMatchedInfo();
   } catch (e) {
     // todo error: connection request or host did not exist
   }
 }
 
-function handleDeclineAttendeeRequest(
-  ws: WebSocket,
-  clientId: string,
-) {
+function handleDeclineAttendeeRequest(clientId: string,) {
+  const clientWs = declineAttendeeRequest(clientId);
+  clientWs.send(`{"type": "request-declined"}`);
 }
 
 function generateHostId(): string {
@@ -91,7 +95,7 @@ function generateHostId(): string {
   return id;
 }
 
-function generateAttendeeId() : string {
+function generateAttendeeId(): string {
   return uuid.generate() as string;
 }
 
@@ -106,7 +110,7 @@ function handleMakeMove(ws: WebSocket, from: string, to: string) {
   }
 }
 
-function checkMoveValid(hostId: string, from: string, to:string) {
+function checkMoveValid(hostId: string, from: string, to: string) {
   return true;
 }
 
@@ -119,7 +123,6 @@ function handleGameWon() {
 // WebSocket stuff
 
 function handleConnected(ws: WebSocket, ev: Event) {
-  
 }
 
 // deno-lint-ignore no-explicit-any
@@ -135,7 +138,7 @@ function handleMessage(ws: WebSocket, data: any) {
       handleAcceptAttendeeRequest(ws, data.clientId);
       break;
     case "decline-attendee-request":
-      handleDeclineAttendeeRequest(ws, data.clientId);
+      handleDeclineAttendeeRequest(data.clientId);
       break;
     case "make-move":
       handleMakeMove(ws, data.from, data.to);
@@ -151,13 +154,13 @@ function handleError(e: Event | ErrorEvent) {
 
 function handleDisconnect(ws: WebSocket) {
   //@ts-ignore Custom property added to the websocket
-    const id = ws.id;
-    console.log(`Disconnected from client (${id})`);
+  const id = ws.id;
+  console.log(`Disconnected from client (${id})`);
 
-    if (!id) return;
+  if (!id) return;
 
-    if (id.length == 4) handleDisconnectHost(id);
-    else handleDisconnectAttendee(id);
+  if (id.length == 4) handleDisconnectHost(id);
+  else handleDisconnectAttendee(id);
 }
 
 function handleDisconnectHost(id: string) {
@@ -165,19 +168,20 @@ function handleDisconnectHost(id: string) {
 }
 
 function handleDisconnectAttendee(id: string) {
-
 }
-
 
 function reqHandler(req: Request) {
   if (req.headers.get("upgrade") != "websocket") {
-    return Response.redirect("https://github.com/PawnHubChess/backend/wiki", 302);
+    return Response.redirect(
+      "https://github.com/PawnHubChess/backend/wiki",
+      302,
+    );
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
 
   ws.onopen = (ev) => handleConnected(ws, ev);
   ws.onmessage = (m) => handleMessage(ws, JSON.parse(m.data));
-  ws.onclose = () => handleDisconnect(ws)
+  ws.onclose = () => handleDisconnect(ws);
   ws.onerror = (e) => handleError(e);
   return response;
 }

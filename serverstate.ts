@@ -12,11 +12,11 @@ export function createHost(hostId: string, ws: WebSocket) {
 }
 
 export function findGameByHostid(id: string): Game | undefined {
-  return games.find(game => game.hostId === id);
+  return games.find((game) => game.hostId === id);
 }
 
 export function findGameByAttendeeId(id: string): Game | undefined {
-  return games.find(game => game.attendeeId === id);
+  return games.find((game) => game.attendeeId === id);
 }
 
 export function gameExists(hostId: string): boolean {
@@ -40,17 +40,16 @@ function addAttendeeToGame(
 }
 
 export function closeGameByHostId(id: string) {
-  console.log(games)
-  games.splice(games.findIndex(game => game.hostId == id), 1);
-  console.log(games)
+  console.log(games);
+  games.splice(games.findIndex((game) => game.hostId == id), 1);
+  console.log(games);
 }
 
 export function removeAttendeeFromGame(id: string) {
-  const game = findGameByAttendeeId(id)
-  if (!game) return
-  game.attendeeId = undefined
-  game.attendeeWs = undefined
-
+  const game = findGameByAttendeeId(id);
+  if (!game) return;
+  game.attendeeId = undefined;
+  game.attendeeWs = undefined;
 }
 
 const pendingConnectRequests: Array<ConnectRequest> = [];
@@ -92,5 +91,30 @@ export function acceptConnectRequest(attendeeId: string): Game {
     request.attendeeId,
     request.ws,
   );
+
+  removeAttendeeFromArray(attendeeId);
+
   return game;
+}
+
+export function declineAttendeeRequest(attendeeId: string): WebSocket {
+  const request = getConnectRequestByAttendeeId(attendeeId);
+  if (!request) {
+    throw new Error("Connect request does not exist");
+  }
+  const ws = request.ws
+
+  removeAttendeeFromArray(attendeeId);
+
+  return ws;
+}
+
+function removeAttendeeFromArray(attendeeId: string) {
+  pendingConnectRequests.splice(
+    pendingConnectRequests.findIndex((request) =>
+      request.attendeeId === attendeeId
+    ),
+    1,
+  );
+
 }
