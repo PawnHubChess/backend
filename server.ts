@@ -69,6 +69,7 @@ function handleAcceptAttendeeRequest(
       "type": "connected-id",
       "id": game.attendeeId
     }))
+    game.sendMatchedInfo()
   } catch (e) {
     // todo error: connection request or host did not exist
   }

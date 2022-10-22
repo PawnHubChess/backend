@@ -11,4 +11,10 @@ export class Game {
         this.hostId = hostId;
         this.hostWs = hostWs;
     }
+
+    sendMatchedInfo() {
+        const msg = `{"type": "matched"}`;
+        this.hostWs.send(msg);
+        this.attendeeWs!.send(msg);
+    }
 }
