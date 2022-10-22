@@ -1,3 +1,4 @@
+import { generateAttendeeId, generateHostId } from "./clientIds.ts";
 import { serve, uuid } from "./deps.ts";
 import {
   acceptConnectRequest,
@@ -83,20 +84,6 @@ function handleAcceptAttendeeRequest(
 function handleDeclineAttendeeRequest(clientId: string,) {
   const clientWs = declineAttendeeRequest(clientId);
   clientWs.send(`{"type": "request-declined"}`);
-}
-
-function generateHostId(): string {
-  let id: string;
-  do {
-    id = Math.floor(Math.random() * 998 + 1)
-      .toString().padStart(4, "0");
-  } while (gameExists(id));
-
-  return id;
-}
-
-function generateAttendeeId(): string {
-  return uuid.generate() as string;
 }
 
 function handleMakeMove(ws: WebSocket, from: string, to: string) {
