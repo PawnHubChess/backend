@@ -1,5 +1,14 @@
 import { generateAttendeeId, generateHostId } from "./clientIds.ts";
-import { acceptConnectRequest, createConnectRequest, createHost, declineAttendeeRequest, findGameByHostid, attendeeHostMatch } from "./serverstate.ts";
+import {
+  acceptConnectRequest,
+  attendeeHostMatch,
+  createConnectRequest,
+  createHost,
+  declineAttendeeRequest,
+  findGameByAttendeeId,
+  findGameByHostid,
+  getConnectRequestByAttendeeId,
+} from "./serverstate.ts";
 
 export function handleConnected(ws: WebSocket, ev: Event) {}
 
@@ -32,10 +41,32 @@ export function handleConnectAttendeeRequest(
   host: string,
   code: string,
 ) {
+  //@ts-ignore Custom property added to the websocket
+  if (ws.id !== undefined) {
+  //@ts-ignore Custom property added to the websocket
+    if (getConnectRequestByAttendeeId(ws.id) !== undefined) {
+      ws.send(JSON.stringify({
+        "type": "request-declined",
+        "details": "duplicate",
+        "message": "Connection request already pending",
+      }));
+      return;
+    }
+  //@ts-ignore Custom property added to the websocket
+    if (findGameByAttendeeId(ws.id) !== undefined) {
+      ws.send(JSON.stringify({
+        "type": "request-declined",
+        "details": "ingame",
+        "message": "Already in a game",
+      }));
+    }
+    return
+  }
+
   const attendeeId = generateAttendeeId();
 
   //@ts-ignore Custom property added to the websocket
-  ws.id = attendeeId;
+  if (ws.id === undefined) ws.id = attendeeId;
   createConnectRequest(attendeeId, host, ws);
 
   const hostWs = findGameByHostid(host)?.hostWs;
@@ -75,5 +106,9 @@ export function handleAcceptAttendeeRequest(
 
 export function handleDeclineAttendeeRequest(clientId: string) {
   const clientWs = declineAttendeeRequest(clientId);
-  clientWs.send(`{"type": "request-declined"}`);
+  clientWs.send(JSON.stringify({
+    "type": "request-declined",
+    "details": "code",
+    "message": "Host did not approve code",
+  }));
 }
