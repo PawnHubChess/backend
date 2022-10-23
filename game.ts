@@ -21,7 +21,7 @@ export class Game {
 
   validateMove(from: BoardPosition, to: BoardPosition) {
     // todo
-    return true;
+    return this.board.validateMove(from, to);
   }
 
   relayMove(playerId: string, from: BoardPosition, to: BoardPosition) {
