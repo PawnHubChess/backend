@@ -26,7 +26,7 @@ export class BoardPosition {
   }
 
   toString() {
-    return `${this.x},${this.y}`;
+    return `${xValues[this.x]}${this.y + 1}`;
   }
 
   // todo parse from string
