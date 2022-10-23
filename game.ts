@@ -20,7 +20,6 @@ export class Game {
   }
 
   validateMove(from: BoardPosition, to: BoardPosition) {
-    // todo
     return this.board.validateMove(from, to);
   }
 

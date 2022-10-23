@@ -7,7 +7,7 @@ import {
   declineAttendeeRequest,
   findGameByAttendeeId,
   findGameByHostid,
-  getConnectRequestByAttendeeId,
+  findConnectRequestByAttendeeId,
 } from "./serverstate.ts";
 
 export function handleConnected(ws: WebSocket, ev: Event) {}
@@ -44,7 +44,7 @@ export function handleConnectAttendeeRequest(
   //@ts-ignore Custom property added to the websocket
   if (ws.id !== undefined) {
     //@ts-ignore Custom property added to the websocket
-    if (getConnectRequestByAttendeeId(ws.id) !== undefined) {
+    if (findConnectRequestByAttendeeId(ws.id) !== undefined) {
       ws.send(JSON.stringify({
         "type": "request-declined",
         "details": "duplicate",
