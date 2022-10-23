@@ -46,3 +46,14 @@ Deno.test("no number", () => {
 Deno.test("empty input", () => {
   assertThrows(() => parsePosition(""));
 });
+
+function testToString(inputX: number, inputY: number, assert: string) {
+  const pos = new BoardPosition(inputX, inputY);
+  assertEquals(pos.toString(), assert);
+}
+
+Deno.test("string top left", () => testToString(0, 0, "H1"));	
+Deno.test("string bottom left", () => testToString(0, 7, "H8"));
+Deno.test("string top right", () => testToString(7, 0, "A1"));
+Deno.test("string bottom right", () => testToString(7, 7, "A8"));
+Deno.test("string middle", () => testToString(3, 3, "E4"));
