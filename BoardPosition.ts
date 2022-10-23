@@ -4,6 +4,7 @@
 // This means that A1 will correspond to the top right corner: (7, 0)
 // X is spanned by letters in reverse order, Y by numbers. H8 => (0, 7)
 //
+const xValues = ["H", "G", "F", "E", "D", "C", "B", "A"]
 export class BoardPosition {
   x: number;
   y: number;
@@ -14,8 +15,9 @@ export class BoardPosition {
   constructor(...args: any[]) {
     if (args.length == 1) {
       // string
-      this.x = 0;
-      this.y = 0;
+      const input = args[0] as string
+      this.x = xValues.indexOf(input.charAt(0).toUpperCase());
+      this.y = +input.charAt(1) - 1;
     } else {
       // int, int
       this.x = arguments[0];
