@@ -16,8 +16,14 @@ export class BoardPosition {
     if (args.length == 1) {
       // string
       const input = args[0] as string
+      if (!input.match(/^\w\d$/)) throw(new Error("Malformatted Input"))
+
       this.x = xValues.indexOf(input.charAt(0).toUpperCase());
       this.y = +input.charAt(1) - 1;
+
+      if (this.x < 0 || this.x > 7) throw(new Error("X out of bounds, input malformatted"))
+      if (this.y < 0 || this.y > 7) throw(new Error("Y out of bounds, input malformatted"))
+
     } else {
       // int, int
       this.x = arguments[0];
@@ -28,7 +34,4 @@ export class BoardPosition {
   toString() {
     return `${xValues[this.x]}${this.y + 1}`;
   }
-
-  // todo parse from string
-  // todo toString
 }
