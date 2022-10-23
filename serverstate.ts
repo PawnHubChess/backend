@@ -63,20 +63,23 @@ export function createConnectRequest(
   connectTo: string,
   ws: WebSocket,
 ) {
+  if (findConnectRequestByAttendeeId(attendeeId) !== undefined) {
+    throw new Error("Attendee already has a connect request");
+  }
   const request = new ConnectRequest(attendeeId, connectTo, ws);
   pendingConnectRequests.push(request);
 }
 
-export function getConnectRequestByAttendeeId(
+export function findConnectRequestByAttendeeId(
   attendeeId: string,
-): ConnectRequest | null {
-  return pendingConnectRequests.filter((request) =>
+): ConnectRequest | undefined {
+  return pendingConnectRequests.find((request) =>
     request.attendeeId === attendeeId
-  )[0] || null;
+  );
 }
 
 export function attendeeHostMatch(attendeeId: string, hostId: string): boolean {
-  const request = getConnectRequestByAttendeeId(attendeeId);
+  const request = findConnectRequestByAttendeeId(attendeeId);
   if (!request) {
     return false;
   }
@@ -85,7 +88,7 @@ export function attendeeHostMatch(attendeeId: string, hostId: string): boolean {
 }
 
 export function acceptConnectRequest(attendeeId: string): Game {
-  const request = getConnectRequestByAttendeeId(attendeeId);
+  const request = findConnectRequestByAttendeeId(attendeeId);
   if (!request) {
     throw new Error("Connect request does not exist");
   }
@@ -102,7 +105,7 @@ export function acceptConnectRequest(attendeeId: string): Game {
 }
 
 export function declineAttendeeRequest(attendeeId: string): WebSocket {
-  const request = getConnectRequestByAttendeeId(attendeeId);
+  const request = findConnectRequestByAttendeeId(attendeeId);
   if (!request) {
     throw new Error("Connect request does not exist");
   }
