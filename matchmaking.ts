@@ -43,7 +43,7 @@ export function handleConnectAttendeeRequest(
 ) {
   //@ts-ignore Custom property added to the websocket
   if (ws.id !== undefined) {
-  //@ts-ignore Custom property added to the websocket
+    //@ts-ignore Custom property added to the websocket
     if (getConnectRequestByAttendeeId(ws.id) !== undefined) {
       ws.send(JSON.stringify({
         "type": "request-declined",
@@ -52,15 +52,15 @@ export function handleConnectAttendeeRequest(
       }));
       return;
     }
-  //@ts-ignore Custom property added to the websocket
+    //@ts-ignore Custom property added to the websocket
     if (findGameByAttendeeId(ws.id) !== undefined) {
       ws.send(JSON.stringify({
         "type": "request-declined",
         "details": "ingame",
         "message": "Already in a game",
       }));
+      return;
     }
-    return
   }
 
   const attendeeId = generateAttendeeId();
