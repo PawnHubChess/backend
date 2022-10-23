@@ -22,30 +22,33 @@ Deno.test("parse bottom right", () => testParsing("A8", 7, 7));
 Deno.test("parse middle", () => testParsing("E4", 3, 3));
 Deno.test("parse lowercase", () => testParsing("e4", 3, 3));
 
-Deno.test("out of bounds x", () => {
+Deno.test("parse out of bounds x", () => {
   assertThrows(() => parsePosition("I1"));
 });
-Deno.test("out of bounds y", () => {
+Deno.test("parse out of bounds y", () => {
   assertThrows(() => parsePosition("A9"));
 });
-Deno.test("out of bounds -y", () => {
+Deno.test("parse out of bounds -y", () => {
   assertThrows(() => parsePosition("A0"));
 });
-Deno.test("both numbers", () => {
+Deno.test("parse both numbers", () => {
   assertThrows(() => parsePosition("11"));
 });
-Deno.test("both letters", () => {
+Deno.test("parse both letters", () => {
   assertThrows(() => parsePosition("AA"));
 });
-Deno.test("no letter", () => {
+Deno.test("parse no letter", () => {
   assertThrows(() => parsePosition("1"));
 });
-Deno.test("no number", () => {
+Deno.test("parse no number", () => {
   assertThrows(() => parsePosition("A"));
 });
-Deno.test("empty input", () => {
+Deno.test("parse empty input", () => {
   assertThrows(() => parsePosition(""));
 });
+Deno.test("parse input too long", () => {
+  assertThrows(() => parsePosition("A1A"));
+})
 
 function testToString(inputX: number, inputY: number, assert: string) {
   const pos = new BoardPosition(inputX, inputY);
