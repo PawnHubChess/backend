@@ -1,3 +1,9 @@
+//
+// SOME INFORMATION ABOUT THE CHESS FIELD NAMING
+// The positions are considered relative to the board, which is playing black
+// This means that A1 will correspond to the top right corner: (7, 0)
+// X is spanned by letters in reverse order, Y by numbers. H8 => (0, 7)
+//
 export class BoardPosition {
   x: number;
   y: number;
