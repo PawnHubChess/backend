@@ -12,6 +12,10 @@ export class Board {
     return this.state[pos.y][pos.x];
   }
 
+  setPiece(pos: BoardPosition, piece: ChessPiece | null): void {
+    this.state[pos.y][pos.x] = piece;
+  }
+
   validateMove(from: BoardPosition, to: BoardPosition): boolean {
     const pieceAtPos = this.get(from);
     if (pieceAtPos === null) return false;
