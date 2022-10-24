@@ -119,6 +119,62 @@ Deno.test("white backwards 2 from B3", () => {
   assertEquals(pawn.validateMove(from, to, board), false);
 });
 
+// Diagonal takes
+
+Deno.test("black diagonal take front right", () => {
+  const pawn = new Pawn(false);
+  const board = new Board();
+  const from = new BoardPosition("B7");
+  const to = new BoardPosition("C6");
+  board.setPiece(to, new Pawn(true));
+  assertEquals(pawn.validateMove(from, to, board), true);
+});
+
+Deno.test("black diagonal take front left", () => {
+  const pawn = new Pawn(false);
+  const board = new Board();
+  const from = new BoardPosition("B7");
+  const to = new BoardPosition("A6");
+  board.setPiece(to, new Pawn(true));
+  assertEquals(pawn.validateMove(from, to, board), true);
+});
+
+Deno.test("black diagonal take back right", () => {
+  const pawn = new Pawn(false);
+  const board = new Board();
+  const from = new BoardPosition("B6");
+  const to = new BoardPosition("C7");
+  board.setPiece(to, new Pawn(true));
+  assertEquals(pawn.validateMove(from, to, board), false);
+});
+
+Deno.test("black diagonal 2 take front right", () => {
+  const pawn = new Pawn(false);
+  const board = new Board();
+  const from = new BoardPosition("B7");
+  const to = new BoardPosition("D5");
+  board.setPiece(to, new Pawn(true));
+  assertEquals(pawn.validateMove(from, to, board), false);
+});
+
+Deno.test("black diagonal take front right same color", () => {
+  const pawn = new Pawn(false);
+  const board = new Board();
+  const from = new BoardPosition("B7");
+  const to = new BoardPosition("C6");
+  board.setPiece(to, new Pawn(false));
+  assertEquals(pawn.validateMove(from, to, board), false);
+});
+
+Deno.test("white diagonal take front right", () => {
+  const pawn = new Pawn(true);
+  const board = new Board();
+  const from = new BoardPosition("B2");
+  const to = new BoardPosition("C3");
+  board.setPiece(to, new Pawn(false));
+  assertEquals(pawn.validateMove(from, to, board), true);
+});
+
 // Collisions
 
 Deno.test("black forward 1 collision", () => {
@@ -147,5 +203,3 @@ Deno.test("white forward 1 collision", () => {
   board.setPiece(to, new Pawn(false));
   assertEquals(pawn.validateMove(from, to, board), false);
 });
-
-// todo diagonal moves
