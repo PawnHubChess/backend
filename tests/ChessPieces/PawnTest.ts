@@ -3,6 +3,8 @@ import { Board } from "../../Board.ts";
 import { BoardPosition } from "../../BoardPosition.ts";
 import { Pawn } from "../../ChessPieces/Pawn.ts";
 
+// Black pieces straight movements
+
 Deno.test("positions equal", () => {
     const pawn = new Pawn(false);
     const board = new Board();
@@ -67,6 +69,40 @@ Deno.test("black right 1 from B6", () => {
     assertEquals(pawn.validateMove(from, to, board), false)  
 })
 
+// White pieces directions
+
+Deno.test("white forward 1 from B2", () => {
+    const pawn = new Pawn(true);
+    const board = new Board();
+    const from = new BoardPosition("B2");
+    const to = new BoardPosition("B3");
+    assertEquals(pawn.validateMove(from, to, board), true)  
+})
+
+Deno.test("white forward 2 from B2", () => {
+    const pawn = new Pawn(true);
+    const board = new Board();
+    const from = new BoardPosition("B2");
+    const to = new BoardPosition("B4");
+    assertEquals(pawn.validateMove(from, to, board), true)
+})
+
+Deno.test("white backwards 1 from B3", () => {
+    const pawn = new Pawn(true);
+    const board = new Board();
+    const from = new BoardPosition("B3");
+    const to = new BoardPosition("B2");
+    assertEquals(pawn.validateMove(from, to, board), false)  
+})
+
+Deno.test("white backwards 2 from B3", () => {
+    const pawn = new Pawn(true);
+    const board = new Board();
+    const from = new BoardPosition("B3");
+    const to = new BoardPosition("B1");
+    assertEquals(pawn.validateMove(from, to, board), false)  
+})
+
+
 // todo diagonal moves
-// todo white direction
 // todo collisions
