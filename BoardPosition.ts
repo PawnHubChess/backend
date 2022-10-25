@@ -34,4 +34,10 @@ export class BoardPosition {
   toString() {
     return `${xValues[this.x]}${this.y + 1}`;
   }
+
+}
+
+export function isTowardsWhite(from: BoardPosition, to: BoardPosition) {
+  // White is starting low-y fields
+  return from.y > to.y;
 }
