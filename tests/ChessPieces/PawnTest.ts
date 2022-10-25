@@ -8,8 +8,9 @@ import { Pawn } from "../../ChessPieces/Pawn.ts";
 Deno.test("positions equal", () => {
   const pawn = new Pawn(false);
   const board = new Board();
-  const from = new BoardPosition(1, 1);
-  const to = new BoardPosition(1, 1);
+  const from = new BoardPosition("A2");
+  const to = new BoardPosition("A2");
+  board.setPiece(from, pawn);
   assertEquals(pawn.validateMove(from, to, board), false);
 });
 
