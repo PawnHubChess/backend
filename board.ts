@@ -5,7 +5,7 @@ export class Board {
   state: (ChessPiece | null)[][];
 
   constructor(board?: (ChessPiece | null)[][]) {
-    this.state = board || new Array(8).fill(null).map(() => new Array(8).fill(null));
+    this.state = board || initBoard();
   }
 
   get(pos: BoardPosition): ChessPiece | null {
@@ -22,3 +22,7 @@ export class Board {
     return pieceAtPos.validateMove(from, to, this);
   }
 }
+
+const initBoard = () => new Array(8).fill(null).map(() => new Array(8).fill(null));
+
+export const initEmptyBoard = () => new Array(8).fill(null).map(() => new Array(8).fill(null));
