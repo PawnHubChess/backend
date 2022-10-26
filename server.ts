@@ -20,7 +20,7 @@ function handleMessage(ws: WebSocket, data: any) {
     case "decline-attendee-request":
       handleDeclineAttendeeRequest(data.clientId);
       break;
-    case "make-move":
+    case "send-move":
       handleMakeMove(ws, data.from, data.to);
       break;
     default:
