@@ -41,3 +41,28 @@ export function isTowardsWhite(from: BoardPosition, to: BoardPosition) {
   // White is starting low-y fields
   return from.y > to.y;
 }
+
+// Returns a list of BoardPositions between two diagonl, horizontal or vertical positions
+export function getIntermediatePositions(from: BoardPosition, to: BoardPosition): BoardPosition[] {
+  if (from.x != to.x && from.y != to.y && Math.abs(from.x - to.x) != Math.abs(from.y - to.y)) {
+    throw(new Error("Positions not on same line"));
+  }
+
+  const positions: BoardPosition[] = [];
+  const xDiff = to.x - from.x;
+  const yDiff = to.y - from.y;
+
+  const xStep = xDiff == 0 ? 0 : xDiff / Math.abs(xDiff);
+  const yStep = yDiff == 0 ? 0 : yDiff / Math.abs(yDiff);
+
+  let x = from.x + xStep;
+  let y = from.y + yStep;
+
+  while (x != to.x || y != to.y) {
+    positions.push(new BoardPosition(x, y));
+    x += xStep;
+    y += yStep;
+  }
+
+  return positions;
+}
