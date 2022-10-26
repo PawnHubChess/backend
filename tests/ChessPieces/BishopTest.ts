@@ -2,7 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.160.0/testing/asserts.ts";
 import { Board, initEmptyBoard } from "../../Board.ts";
 import { BoardPosition } from "../../BoardPosition.ts";
 import { Pawn } from "../../ChessPieces/Pawn.ts";
-import { Rook } from "../../ChessPieces/Rook.ts";
+import { Bishop } from "../../ChessPieces/Bishop.ts";
 import { ChessPiece } from "../../ChessPieces/_ChessPiece.ts";
 
 function testMove(
@@ -24,7 +24,7 @@ function testCollision(
   const board = new Board(initEmptyBoard());
   const fromPos = new BoardPosition(from);
   const toPos = new BoardPosition(to);
-  board.set(fromPos, new Rook(isWhite));
+  board.set(fromPos, new Bishop(isWhite));
   if (otherPos !== null && otherPiece !== null) {
     board.set(new BoardPosition(otherPos), otherPiece);
   }
@@ -33,30 +33,30 @@ function testCollision(
 
 Deno.test("same position", () => testMove("C3", "C3", false));
 
-// Straights
-Deno.test("1 front", () => testMove("E4", "E3", true));
-Deno.test("4 back", () => testMove("F2", "F6", true));
-Deno.test("3 left", () => testMove("A2", "D2", true));
-Deno.test("2 right", () => testMove("C4", "A4", true));
-
 // Diagonals
-Deno.test("diagonal +1 +1", () => testMove("E4", "D3", false));
-Deno.test("diagonl +1 -1", () => testMove("E4", "F3", false));
-Deno.test("diagonal -1 +1", () => testMove("E4", "D5", false));
-Deno.test("diagonl -1 -1", () => testMove("E4", "F5", false));
+Deno.test("diagonal +1 +1", () => testMove("E4", "D3", true));
+Deno.test("diagonl +2 -2", () => testMove("E4", "G2", true));
+Deno.test("diagonal -3 +3", () => testMove("E4", "B7", true));
+Deno.test("diagonl -4 -4", () => testMove("D4", "H8", true));
+
+// Straights
+Deno.test("1 front", () => testMove("E4", "E3", false));
+Deno.test("4 back", () => testMove("F2", "F6", false));
+Deno.test("3 left", () => testMove("A2", "D2", false));
+Deno.test("2 right", () => testMove("C4", "A4", false));
 
 // Takes
-Deno.test("take 1 front", () =>
-  testCollision("E4", "E3", false, "E3", new Rook(true), true));
-Deno.test("take 4 back", () =>
-  testCollision("F2", "F6", true, "F6", new Pawn(false), true));
-Deno.test("take 2 diagonal", () =>
-  testCollision("E5", "C3", false, "C3", new Rook(true), false));
+Deno.test("take 1 diagonal", () =>
+  testCollision("E4", "D3", false, "D3", new Bishop(true), true));
+Deno.test("take 4 diagonal", () =>
+  testCollision("B2", "H8", true, "H8", new Pawn(false), true));
+Deno.test("take 2 straight", () =>
+  testCollision("E5", "E7", false, "E7", new Bishop(true), false));
 
 // Collisions
 Deno.test("collision direct", () =>
-  testCollision("G4", "G6", true, "G6", new Pawn(true), false));
+  testCollision("F4", "H6", true, "H6", new Pawn(true), false));
 Deno.test("collision intermediate", () =>
-  testCollision("E3", "E6", true, "E4", new Rook(true), false));
+  testCollision("E3", "H6", true, "F4", new Bishop(true), false));
 Deno.test("collision intermediate opponent", () =>
-  testCollision("E7", "E2", false, "E4", new Rook(true), false));
+  testCollision("G7", "B2", false, "E5", new Bishop(true), false));
