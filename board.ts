@@ -5,14 +5,14 @@ export class Board {
   state: (ChessPiece | null)[][];
 
   constructor(board?: (ChessPiece | null)[][]) {
-    this.state = board || new Array(8).fill(new Array(8).fill(null));
+    this.state = board || new Array(8).fill(null).map(() => new Array(8).fill(null));
   }
 
   get(pos: BoardPosition): ChessPiece | null {
     return this.state[pos.y][pos.x];
   }
 
-  setPiece(pos: BoardPosition, piece: ChessPiece | null): void {
+  set(pos: BoardPosition, piece: ChessPiece | null) {
     this.state[pos.y][pos.x] = piece;
   }
 

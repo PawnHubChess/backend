@@ -12,7 +12,7 @@ function testPawnMove(
   const board = new Board();
   const fromPos = new BoardPosition(from);
   const toPos = new BoardPosition(to);
-  board.setPiece(fromPos, new Pawn(isWhite));
+  board.set(fromPos, new Pawn(isWhite));
   assertEquals(board.validateMove(fromPos, toPos), assert);
 }
 
@@ -26,8 +26,8 @@ function testPawnCollision(
   const board = new Board();
   const fromPos = new BoardPosition(from);
   const toPos = new BoardPosition(to);
-  board.setPiece(fromPos, new Pawn(isWhite));
-  board.setPiece(toPos, new Pawn(targetWhite));
+  board.set(fromPos, new Pawn(isWhite));
+  board.set(toPos, new Pawn(targetWhite));
   assertEquals(board.validateMove(fromPos, toPos), assert);
 }
 
