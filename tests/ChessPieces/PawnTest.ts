@@ -95,8 +95,8 @@ Deno.test("black forward 2 collision same color", () =>
 Deno.test("white forward 1 collision", () =>
   testCollision("B2", "B3", true, "B3", new Pawn(false), false));
 
-Deno.test("black forward 2 intermediate collison", () =>
-  testCollision("C7", "C5", false, "B6", new Pawn(false), false));
+Deno.test("black forward 2 intermediate collision", () =>
+  testCollision("C7", "C5", false, "C6", new Pawn(false), false));
 
-Deno.test("white forward 2 intermediate collison opponent", () =>
+Deno.test("white forward 2 intermediate collision opponent", () =>
   testCollision("C2", "C4", true, "C3", new Pawn(false), false));
