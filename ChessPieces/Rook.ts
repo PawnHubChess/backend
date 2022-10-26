@@ -4,7 +4,7 @@ import { ChessPiece } from "./_ChessPiece.ts";
 
 export class Rook extends ChessPiece {
   validateMove(from: BoardPosition, to: BoardPosition, board: Board): boolean {
-    // No diagonal moves
+    // Only horizontal or vertical moves
     if (from.x !== to.x && from.y !== to.y) return false;
 
     // No intermediate collisions
@@ -15,7 +15,6 @@ export class Rook extends ChessPiece {
     // No collisions with same color
     if (board.get(to)?.isWhite === this.isWhite) return false;
 
-    console.log("RETURNS TRUE");
     return true;
   }
 }
