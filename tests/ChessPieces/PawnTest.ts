@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.160.0/testing/asserts.ts";
-import { Board } from "../../Board.ts";
+import { Board, initEmptyBoard } from "../../Board.ts";
 import { BoardPosition } from "../../BoardPosition.ts";
 import { Pawn } from "../../ChessPieces/Pawn.ts";
 
@@ -9,7 +9,7 @@ function testPawnMove(
   isWhite: boolean,
   assert: boolean,
 ) {
-  const board = new Board();
+  const board = new Board(initEmptyBoard());
   const fromPos = new BoardPosition(from);
   const toPos = new BoardPosition(to);
   board.set(fromPos, new Pawn(isWhite));
@@ -23,7 +23,7 @@ function testPawnCollision(
   targetWhite: boolean,
   assert: boolean,
 ) {
-  const board = new Board();
+  const board = new Board(initEmptyBoard());
   const fromPos = new BoardPosition(from);
   const toPos = new BoardPosition(to);
   board.set(fromPos, new Pawn(isWhite));
