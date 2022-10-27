@@ -42,7 +42,7 @@ export function isTowardsWhite(from: BoardPosition, to: BoardPosition) {
   return from.y > to.y;
 }
 
-// Returns a list of BoardPositions between two diagonl, horizontal or vertical positions
+// Returns a list of BoardPositions between two diagonal, horizontal or vertical positions
 export function getIntermediatePositions(from: BoardPosition, to: BoardPosition): BoardPosition[] {
   if (from.x != to.x && from.y != to.y && Math.abs(from.x - to.x) != Math.abs(from.y - to.y)) {
     throw(new Error("Positions not on same line"));

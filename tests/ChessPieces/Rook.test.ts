@@ -31,32 +31,32 @@ function testCollision(
   assertEquals(board.validateMove(fromPos, toPos), assert);
 }
 
-Deno.test("same position", () => testMove("C3", "C3", false));
+Deno.test("rook same position", () => testMove("C3", "C3", false));
 
 // Straights
-Deno.test("1 front", () => testMove("E4", "E3", true));
-Deno.test("4 back", () => testMove("F2", "F6", true));
-Deno.test("3 left", () => testMove("A2", "D2", true));
-Deno.test("2 right", () => testMove("C4", "A4", true));
+Deno.test("rook 1 front", () => testMove("E4", "E3", true));
+Deno.test("rook 4 back", () => testMove("F2", "F6", true));
+Deno.test("rook 3 left", () => testMove("A2", "D2", true));
+Deno.test("rook 2 right", () => testMove("C4", "A4", true));
 
 // Diagonals
-Deno.test("diagonal +1 +1", () => testMove("E4", "D3", false));
-Deno.test("diagonl +1 -1", () => testMove("E4", "F3", false));
-Deno.test("diagonal -1 +1", () => testMove("E4", "D5", false));
-Deno.test("diagonl -1 -1", () => testMove("E4", "F5", false));
+Deno.test("rook diagonal +1 +1", () => testMove("E4", "D3", false));
+Deno.test("rook diagonal +1 -1", () => testMove("E4", "F3", false));
+Deno.test("rook diagonal -1 +1", () => testMove("E4", "D5", false));
+Deno.test("rook diagonal -1 -1", () => testMove("E4", "F5", false));
 
 // Takes
-Deno.test("take 1 front", () =>
+Deno.test("rook take 1 front", () =>
   testCollision("E4", "E3", false, "E3", new Rook(true), true));
-Deno.test("take 4 back", () =>
+Deno.test("rook take 4 back", () =>
   testCollision("F2", "F6", true, "F6", new Pawn(false), true));
-Deno.test("take 2 diagonal", () =>
+Deno.test("rook take 2 diagonal", () =>
   testCollision("E5", "C3", false, "C3", new Rook(true), false));
 
 // Collisions
-Deno.test("collision direct", () =>
+Deno.test("rook collision direct", () =>
   testCollision("G4", "G6", true, "G6", new Pawn(true), false));
-Deno.test("collision intermediate", () =>
+Deno.test("rook collision intermediate", () =>
   testCollision("E3", "E6", true, "E4", new Rook(true), false));
-Deno.test("collision intermediate opponent", () =>
+Deno.test("rook collision intermediate opponent", () =>
   testCollision("E7", "E2", false, "E4", new Rook(true), false));

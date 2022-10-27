@@ -31,32 +31,32 @@ function testCollision(
   assertEquals(board.validateMove(fromPos, toPos), assert);
 }
 
-Deno.test("same position", () => testMove("C3", "C3", false));
+Deno.test("bishop same position", () => testMove("C3", "C3", false));
 
 // Diagonals
-Deno.test("diagonal +1 +1", () => testMove("E4", "D3", true));
-Deno.test("diagonl +2 -2", () => testMove("E4", "G2", true));
-Deno.test("diagonal -3 +3", () => testMove("E4", "B7", true));
-Deno.test("diagonl -4 -4", () => testMove("D4", "H8", true));
+Deno.test("bishop diagonal +1 +1", () => testMove("E4", "D3", true));
+Deno.test("bishop diagonal +2 -2", () => testMove("E4", "G2", true));
+Deno.test("bishop diagonal -3 +3", () => testMove("E4", "B7", true));
+Deno.test("bishop diagonal -4 -4", () => testMove("D4", "H8", true));
 
 // Straights
-Deno.test("1 front", () => testMove("E4", "E3", false));
-Deno.test("4 back", () => testMove("F2", "F6", false));
-Deno.test("3 left", () => testMove("A2", "D2", false));
-Deno.test("2 right", () => testMove("C4", "A4", false));
+Deno.test("bishop 1 front", () => testMove("E4", "E3", false));
+Deno.test("bishop 4 back", () => testMove("F2", "F6", false));
+Deno.test("bishop 3 left", () => testMove("A2", "D2", false));
+Deno.test("bishop 2 right", () => testMove("C4", "A4", false));
 
 // Takes
-Deno.test("take 1 diagonal", () =>
+Deno.test("bishop take 1 diagonal", () =>
   testCollision("E4", "D3", false, "D3", new Bishop(true), true));
-Deno.test("take 4 diagonal", () =>
+Deno.test("bishop take 4 diagonal", () =>
   testCollision("B2", "H8", true, "H8", new Pawn(false), true));
-Deno.test("take 2 straight", () =>
+Deno.test("bishop take 2 straight", () =>
   testCollision("E5", "E7", false, "E7", new Bishop(true), false));
 
 // Collisions
-Deno.test("collision direct", () =>
+Deno.test("bishop collision direct", () =>
   testCollision("F4", "H6", true, "H6", new Pawn(true), false));
-Deno.test("collision intermediate", () =>
+Deno.test("bishop collision intermediate", () =>
   testCollision("E3", "H6", true, "F4", new Bishop(true), false));
-Deno.test("collision intermediate opponent", () =>
+Deno.test("bishop collision intermediate opponent", () =>
   testCollision("G7", "B2", false, "E5", new Bishop(true), false));
