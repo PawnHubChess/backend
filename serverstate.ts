@@ -44,9 +44,7 @@ function addAttendeeToGame(
 }
 
 export function closeGameByHostId(id: string) {
-  console.log(games);
   games.splice(games.findIndex((game) => game.hostId == id), 1);
-  console.log(games);
 }
 
 export function removeAttendeeFromGame(id: string) {
