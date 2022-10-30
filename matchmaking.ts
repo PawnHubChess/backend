@@ -1,20 +1,21 @@
 import { generateAttendeeId, generateHostId } from "./clientIds.ts";
+import { ExtendedWs } from "./ExtendedWs.ts";
 import {
   acceptConnectRequest,
   attendeeHostMatch,
   createConnectRequest,
   createHost,
   declineAttendeeRequest,
+  findConnectRequestByAttendeeId,
   findGameByAttendeeId,
   findGameByHostid,
-  findConnectRequestByAttendeeId,
+  gameExists,
 } from "./serverstate.ts";
 
-export function handleConnected(ws: WebSocket, ev: Event) {}
+export function handleConnected(ws: ExtendedWs, ev: Event) {}
 
-export function handleConnectHost(ws: WebSocket) {
-  //@ts-ignore Custom property added to the websocket
-  if (ws.id !== undefined && gameExists(ws.id)) {
+export function handleConnectHost(ws: ExtendedWs) {
+  if (ws.id !== undefined && gameExists(ws.id!)) {
     // Error: Host is already connected and in a game
     ws.send(JSON.stringify({
       "type": "error",
@@ -26,7 +27,6 @@ export function handleConnectHost(ws: WebSocket) {
   }
 
   const hostId = generateHostId();
-  //@ts-ignore Custom property added to the websocket
   ws.id = hostId;
   createHost(hostId, ws);
 
@@ -37,14 +37,12 @@ export function handleConnectHost(ws: WebSocket) {
 }
 
 export function handleConnectAttendeeRequest(
-  ws: WebSocket,
+  ws: ExtendedWs,
   host: string,
   code: string,
 ) {
-  //@ts-ignore Custom property added to the websocket
   if (ws.id !== undefined) {
-    //@ts-ignore Custom property added to the websocket
-    if (findConnectRequestByAttendeeId(ws.id) !== undefined) {
+    if (findConnectRequestByAttendeeId(ws.id!) !== undefined) {
       ws.send(JSON.stringify({
         "type": "request-declined",
         "details": "duplicate",
@@ -52,7 +50,6 @@ export function handleConnectAttendeeRequest(
       }));
       return;
     }
-    //@ts-ignore Custom property added to the websocket
     if (findGameByAttendeeId(ws.id) !== undefined) {
       ws.send(JSON.stringify({
         "type": "request-declined",
@@ -65,7 +62,6 @@ export function handleConnectAttendeeRequest(
 
   const attendeeId = generateAttendeeId();
 
-  //@ts-ignore Custom property added to the websocket
   if (ws.id === undefined) ws.id = attendeeId;
   createConnectRequest(attendeeId, host, ws);
 
@@ -83,11 +79,10 @@ export function handleConnectAttendeeRequest(
 }
 
 export function handleAcceptAttendeeRequest(
-  ws: WebSocket,
+  ws: ExtendedWs,
   clientId: string,
 ) {
-  //@ts-ignore Custom property added to the websocket
-  if (!attendeeHostMatch(clientId, ws.id)) {
+  if (!attendeeHostMatch(clientId, ws.id!)) {
     // todo error: attendee and host do not match
     throw new Error("Attendee and host do not match");
   }

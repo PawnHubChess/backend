@@ -1,9 +1,9 @@
 import { BoardPosition } from "./BoardPosition.ts";
+import { ExtendedWs } from "./ExtendedWs.ts";
 import { findGameById } from "./serverstate.ts";
 
-export function handleMakeMove(ws: WebSocket, from: string, to: string) {
-  //@ts-ignore Custom property added to the websocket
-  const game = findGameById(ws.id)!;
+export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
+  const game = findGameById(ws.id!)!;
   const fromPos = new BoardPosition(from);
   const toPos = new BoardPosition(to);
 
@@ -23,7 +23,6 @@ export function handleMakeMove(ws: WebSocket, from: string, to: string) {
     "to": to,
   }));
   
-  //@ts-ignore Custom property added to the websocket
   game.relayMove(ws.id, fromPos, toPos);
   checkGameWon();
 }

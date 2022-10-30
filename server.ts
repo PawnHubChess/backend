@@ -1,4 +1,5 @@
 import { serve } from "./deps.ts";
+import { ExtendedWs } from "./ExtendedWs.ts";
 import { handleConnectHost,handleConnectAttendeeRequest,handleAcceptAttendeeRequest,handleDeclineAttendeeRequest, handleConnected } from "./matchmaking.ts";
 import { handleMakeMove } from "./playing.ts";
 import { closeGameByHostId, removeAttendeeFromGame } from "./serverstate.ts";
@@ -6,7 +7,7 @@ import { closeGameByHostId, removeAttendeeFromGame } from "./serverstate.ts";
 // WebSocket stuff
 
 // deno-lint-ignore no-explicit-any
-function handleMessage(ws: WebSocket, data: any) {
+function handleMessage(ws: ExtendedWs, data: any) {
   switch (data.type) {
     case "connect-host":
       handleConnectHost(ws);
@@ -32,7 +33,7 @@ function handleError(e: Event | ErrorEvent) {
   console.log(e instanceof ErrorEvent ? e.message : e.type);
 }
 
-function handleDisconnect(ws: WebSocket) {
+function handleDisconnect(ws: ExtendedWs) {
   //@ts-ignore Custom property added to the websocket
   const id = ws.id;
   console.log(`Disconnected from client (${id})`);
@@ -61,11 +62,12 @@ function reqHandler(req: Request) {
     );
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
+  const ews = ws as ExtendedWs
 
-  ws.onopen = (ev) => handleConnected(ws, ev);
-  ws.onmessage = (m) => handleMessage(ws, JSON.parse(m.data));
-  ws.onclose = () => handleDisconnect(ws);
-  ws.onerror = (e) => handleError(e);
+  ews.onopen = (ev) => handleConnected(ews, ev);
+  ews.onmessage = (m) => handleMessage(ews, JSON.parse(m.data));
+  ews.onclose = () => handleDisconnect(ews);
+  ews.onerror = (e) => handleError(e);
   return response;
 }
 
