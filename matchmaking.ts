@@ -1,8 +1,4 @@
-import {
-  ExtendedWs,
-  generateAttendeeId,
-  generateHostId,
-} from "./ExtendedWs.ts";
+import { applyAttendeeId, applyHostId, applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
 import {
   acceptConnectRequest,
   attendeeHostMatch,
@@ -29,13 +25,15 @@ export function handleConnectHost(ws: ExtendedWs) {
     return;
   }
 
-  const hostId = generateHostId();
-  ws.id = hostId;
-  createHost(hostId, ws);
+  applyHostId(ws);
+  applyReconnectCode(ws);
+  console.log(ws.reconnectCode)
+  createHost(ws.id!, ws);
 
   ws.send(JSON.stringify({
     "type": "connected-id",
-    "id": hostId,
+    "id": ws.id,
+    "reconnect-code": ws.reconnectCode,
   }));
 }
 
@@ -63,10 +61,9 @@ export function handleConnectAttendeeRequest(
     }
   }
 
-  const attendeeId = generateAttendeeId();
-
-  if (ws.id === undefined) ws.id = attendeeId;
-  createConnectRequest(attendeeId, host, ws);
+  applyAttendeeId(ws);
+  applyReconnectCode(ws);
+  createConnectRequest(ws.id!, host, ws);
 
   const hostWs = findGameByHostid(host)?.hostWs;
   if (!hostWs) {
@@ -76,7 +73,7 @@ export function handleConnectAttendeeRequest(
 
   hostWs.send(JSON.stringify({
     "type": "verify-attendee-request",
-    "clientId": attendeeId,
+    "clientId": ws.id!,
     "code": code,
   }));
 }
@@ -95,6 +92,7 @@ export function handleAcceptAttendeeRequest(
     game.attendeeWs?.send(JSON.stringify({
       "type": "connected-id",
       "id": game.attendeeId,
+      "reconnectCode": game.attendeeWs.reconnectCode!,
     }));
     game.sendMatchedInfo();
   } catch (e) {

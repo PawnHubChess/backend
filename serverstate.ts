@@ -1,9 +1,10 @@
 import { ConnectRequest } from "./connectrequest.ts";
+import { ExtendedWs } from "./ExtendedWs.ts";
 import { Game } from "./Game.ts";
 
 const games: Array<Game> = [];
 
-export function createHost(hostId: string, ws: WebSocket) {
+export function createHost(hostId: string, ws: ExtendedWs) {
   if (gameExists(hostId)) {
     throw new Error("Host already exists");
   }
@@ -30,7 +31,7 @@ export function gameExists(hostId: string): boolean {
 function addAttendeeToGame(
   hostId: string,
   attendeeId: string,
-  ws: WebSocket,
+  ws: ExtendedWs,
 ): Game {
   const game = findGameByHostid(hostId);
   if (!game) {

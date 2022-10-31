@@ -1,14 +1,15 @@
 import { Board } from "./Board.ts";
 import { BoardPosition } from "./BoardPosition.ts";
+import { ExtendedWs } from "./ExtendedWs.ts";
 
 export class Game {
   hostId: string;
-  hostWs: WebSocket;
+  hostWs: ExtendedWs;
   attendeeId: string | undefined;
-  attendeeWs: WebSocket | undefined;
+  attendeeWs: ExtendedWs | undefined;
   board: Board = new Board();
 
-  constructor(hostId: string, hostWs: WebSocket) {
+  constructor(hostId: string, hostWs: ExtendedWs) {
     this.hostId = hostId;
     this.hostWs = hostWs;
   }
