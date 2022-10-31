@@ -1,8 +1,18 @@
 import { serve } from "./deps.ts";
-import { ExtendedWs } from "./ExtendedWs.ts";
-import { handleConnectHost,handleConnectAttendeeRequest,handleAcceptAttendeeRequest,handleDeclineAttendeeRequest, handleConnected } from "./matchmaking.ts";
+import { applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
+import {
+  handleAcceptAttendeeRequest,
+  handleConnectAttendeeRequest,
+  handleConnected,
+  handleConnectHost,
+  handleDeclineAttendeeRequest,
+} from "./matchmaking.ts";
 import { handleMakeMove } from "./playing.ts";
-import { closeGameByHostId, removeAttendeeFromGame } from "./serverstate.ts";
+import {
+  closeGameByHostId,
+  findGameById,
+  removeAttendeeFromGame,
+} from "./serverstate.ts";
 
 // WebSocket stuff
 
@@ -20,6 +30,9 @@ function handleMessage(ws: ExtendedWs, data: any) {
       break;
     case "decline-attendee-request":
       handleDeclineAttendeeRequest(data.clientId);
+      break;
+    case "reconnect":
+      handleReconnect(ws, data.id, data.reconnectCode);
       break;
     case "send-move":
       handleMakeMove(ws, data.from, data.to);
@@ -56,8 +69,46 @@ function handleDisconnectAttendee(id: string) {
   // todo notify host
 }
 
-function handleReconnect(id: string, reconnectCode: string) {
-  
+function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
+  const game = findGameById(id);
+  let oldWs: ExtendedWs | undefined;
+  let isHost: boolean | undefined;
+
+  if (game?.hostWs.id === id) {
+    oldWs = game.hostWs;
+    isHost = true;
+  } else if (game?.attendeeWs?.id === id) {
+    oldWs = game.attendeeWs;
+    isHost = false;
+  } else return;
+
+  if (oldWs.readyState === 1) {
+    ws.send(JSON.stringify({
+      "type": "error",
+      "error": "aready-connected",
+    }));
+    return;
+  }
+
+  // todo old ip should match new ip
+  if (ws.reconnectCode === reconnectCode) {
+    ws.id = id;
+    applyReconnectCode(ws);
+
+    if (isHost) game.hostWs = ws;
+    else game.attendeeWs = ws;
+
+    ws.send(JSON.stringify({
+      type: "reconnected",
+      "reconnectCode": ws.reconnectCode,
+    }));
+  } else {
+    ws.send(JSON.stringify({
+      "type": "error",
+      "error": "wrong-code",
+    }));
+    return;
+  }
 }
 
 function reqHandler(req: Request) {
@@ -68,7 +119,7 @@ function reqHandler(req: Request) {
     );
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
-  const ews = ws as ExtendedWs
+  const ews = ws as ExtendedWs;
 
   ews.onopen = (ev) => handleConnected(ews, ev);
   ews.onmessage = (m) => handleMessage(ews, JSON.parse(m.data));
