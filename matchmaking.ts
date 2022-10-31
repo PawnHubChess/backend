@@ -1,5 +1,8 @@
-import { generateAttendeeId, generateHostId } from "./clientIds.ts";
-import { ExtendedWs } from "./ExtendedWs.ts";
+import {
+  ExtendedWs,
+  generateAttendeeId,
+  generateHostId,
+} from "./ExtendedWs.ts";
 import {
   acceptConnectRequest,
   attendeeHostMatch,
