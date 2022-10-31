@@ -1,4 +1,9 @@
-import { applyAttendeeId, applyHostId, applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
+import {
+  applyAttendeeId,
+  applyHostId,
+  applyReconnectCode,
+  ExtendedWs,
+} from "./ExtendedWs.ts";
 import {
   acceptConnectRequest,
   attendeeHostMatch,
@@ -27,7 +32,7 @@ export function handleConnectHost(ws: ExtendedWs) {
 
   applyHostId(ws);
   applyReconnectCode(ws);
-  console.log(ws.reconnectCode)
+  console.log(ws.reconnectCode);
   createHost(ws.id!, ws);
 
   ws.send(JSON.stringify({
@@ -61,17 +66,20 @@ export function handleConnectAttendeeRequest(
     }
   }
 
+  if (!findGameByHostid(host)?.hostWs) {
+    ws.send(JSON.stringify({
+      "type": "request-declined",
+      "details": "nonexistent",
+      "message": "Host does not exist",
+    }));
+    return;
+  }
+
   applyAttendeeId(ws);
   applyReconnectCode(ws);
   createConnectRequest(ws.id!, host, ws);
 
-  const hostWs = findGameByHostid(host)?.hostWs;
-  if (!hostWs) {
-    // todo error: host does not exist
-    throw new Error("Host does not exist");
-  }
-
-  hostWs.send(JSON.stringify({
+  findGameByHostid(host)?.hostWs!.send(JSON.stringify({
     "type": "verify-attendee-request",
     "clientId": ws.id!,
     "code": code,

@@ -46,12 +46,18 @@ function handleDisconnect(ws: ExtendedWs) {
 
 function handleDisconnectHost(id: string) {
   // todo notify attendee
-  closeGameByHostId(id);
+  // Close game after reconnect timeout
+  //closeGameByHostId(id);
 }
 
 function handleDisconnectAttendee(id: string) {
-  removeAttendeeFromGame(id);
+  // Remove from game after reconnect timeout
+  //removeAttendeeFromGame(id);
   // todo notify host
+}
+
+function handleReconnect(id: string, reconnectCode: string) {
+  
 }
 
 function reqHandler(req: Request) {
