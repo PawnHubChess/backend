@@ -86,10 +86,10 @@ export function attendeeHostMatch(attendeeId: string, hostId: string): boolean {
   return request.connectTo === hostId;
 }
 
-export function acceptConnectRequest(attendeeId: string): Game {
+export function acceptConnectRequest(attendeeId: string): Game | null {
   const request = findConnectRequestByAttendeeId(attendeeId);
   if (!request) {
-    throw new Error("Connect request does not exist");
+    return null;
   }
 
   const game = addAttendeeToGame(
@@ -103,10 +103,10 @@ export function acceptConnectRequest(attendeeId: string): Game {
   return game;
 }
 
-export function declineAttendeeRequest(attendeeId: string): WebSocket {
+export function declineAttendeeRequest(attendeeId: string): WebSocket | null {
   const request = findConnectRequestByAttendeeId(attendeeId);
   if (!request) {
-    throw new Error("Connect request does not exist");
+    return null;
   }
   const ws = request.ws;
 

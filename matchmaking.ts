@@ -91,12 +91,26 @@ export function handleAcceptAttendeeRequest(
   clientId: string,
 ) {
   if (!attendeeHostMatch(clientId, ws.id!)) {
-    // todo error: attendee and host do not match
-    throw new Error("Attendee and host do not match");
+    ws.send(JSON.stringify({
+      "type": "error",
+      "details": "connect-response-client-error",
+      "message": "Client did not request connection",
+    }));
+    return;
   }
 
   try {
-    const game = acceptConnectRequest(clientId);
+    let game = acceptConnectRequest(clientId);
+
+    if (!game) {
+      ws.send(JSON.stringify({
+        "type": "error",
+        "details": "connect-response-request-error",
+        "message": "Client did not request connection",
+      }));
+    }
+    game = game!;
+
     game.attendeeWs?.send(JSON.stringify({
       "type": "connected-id",
       "id": game.attendeeId,
@@ -110,7 +124,9 @@ export function handleAcceptAttendeeRequest(
 
 export function handleDeclineAttendeeRequest(clientId: string) {
   const clientWs = declineAttendeeRequest(clientId);
-  clientWs.send(JSON.stringify({
+  if (!clientWs) return;
+  
+  clientWs!.send(JSON.stringify({
     "type": "request-declined",
     "details": "code",
     "message": "Host did not approve code",
