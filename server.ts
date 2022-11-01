@@ -120,6 +120,7 @@ function reqHandler(req: Request) {
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
   const ews = ws as ExtendedWs;
+  const ipaddress = req.headers.get("x-forwarded-for") || req.headers.get("host");
 
   ews.onopen = (ev) => handleConnected(ews, ev);
   ews.onmessage = (m) => handleMessage(ews, JSON.parse(m.data));
