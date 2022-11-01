@@ -7,8 +7,15 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
   const fromPos = new BoardPosition(from);
   const toPos = new BoardPosition(to);
 
-  // todo parse board position
   if (!game.validateMove(fromPos, toPos)) {
+    ws.send(JSON.stringify({
+      "type": "reject-move",
+      "from": from,
+      "to": to,
+    }));
+    return;
+  }
+  if (!game.validateCorrectPlayerMoved(fromPos, ws.id!)) {
     ws.send(JSON.stringify({
       "type": "reject-move",
       "from": from,
@@ -23,7 +30,7 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
     "to": to,
   }));
   
-  game.relayMove(ws.id, fromPos, toPos);
+  game.relayMove(ws.id!, fromPos, toPos);
   checkGameWon();
 }
 

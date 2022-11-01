@@ -23,6 +23,13 @@ export class Game {
     this.attendeeWs!.send(msg);
   }
 
+  validateCorrectPlayerMoved(from: BoardPosition, id: string): boolean {
+    // Host is always black
+    const shouldBeWhite = id === this.attendeeId;
+    const pieceIsWhite = this.board.get(from)?.isWhite;
+    return shouldBeWhite === pieceIsWhite;
+  }
+
   validateMove(from: BoardPosition, to: BoardPosition) {
     return this.board.validateMove(from, to);
   }
