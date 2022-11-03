@@ -32,7 +32,7 @@ function handleMessage(ws: ExtendedWs, data: any) {
       handleDeclineAttendeeRequest(data.clientId);
       break;
     case "reconnect":
-      handleReconnect(ws, data.id, data.reconnectCode);
+      handleReconnect(ws, data.id, data["reconnect-code"]);
       break;
     case "send-move":
       handleMakeMove(ws, data.from, data.to);
@@ -100,7 +100,7 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
 
     ws.send(JSON.stringify({
       type: "reconnected",
-      "reconnectCode": ws.reconnectCode,
+      "reconnect-code": ws.reconnectCode,
     }));
   } else {
     ws.send(JSON.stringify({

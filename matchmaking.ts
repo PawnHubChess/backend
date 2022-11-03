@@ -114,7 +114,7 @@ export function handleAcceptAttendeeRequest(
     game.attendeeWs?.send(JSON.stringify({
       "type": "connected-id",
       "id": game.attendeeId,
-      "reconnectCode": game.attendeeWs.reconnectCode!,
+      "reconnect-code": game.attendeeWs.reconnectCode!,
     }));
     game.sendMatchedInfo();
   } catch (e) {
