@@ -73,7 +73,7 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
   const game = findGameById(id);
   let oldWs: ExtendedWs | undefined;
   let isHost: boolean | undefined;
-
+  
   if (game?.hostWs.id === id) {
     oldWs = game.hostWs;
     isHost = true;
@@ -81,7 +81,13 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
     oldWs = game.attendeeWs;
     isHost = false;
   } else return;
-
+  
+    console.log(oldWs)
+    console.log(id)
+    console.log(oldWs.reconnectCode)
+    console.log(reconnectCode)
+    console.log(ws.reconnectCode)
+  
   if (oldWs.readyState === 1) {
     ws.send(JSON.stringify({
       "type": "error",
@@ -91,7 +97,7 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
   }
 
   // todo old ip should match new ip
-  if (ws.reconnectCode === reconnectCode) {
+  if (oldWs.reconnectCode === reconnectCode) {
     ws.id = id;
     applyReconnectCode(ws);
 
