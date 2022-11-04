@@ -108,3 +108,10 @@ Deno.test("board setup empty fields", () => {
   assertEquals(board.get(new BoardPosition("G3")), null);
   assertEquals(board.get(new BoardPosition("H4")), null);
 })
+
+Deno.test("toFEN D4", () => {
+  const board = new Board(initEmptyBoard());
+  const position = new BoardPosition("D4");
+  board.set(position, new Pawn(true));
+  assertEquals(board.toFEN(), "8/8/8/8/3P4/8/8/8");
+})

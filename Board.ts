@@ -47,7 +47,7 @@ export class Board {
         fenRow += emptySpaces.toString();
       }
       return fenRow;
-    }).join("/");
+    }).reverse().join("/");
 
     return fen;
   }
