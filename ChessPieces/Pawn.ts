@@ -17,6 +17,9 @@ export class Pawn extends ChessPiece {
         board.get(to)!.isWhite !== this.isWhite)
     ) return true;
 
+    // Only along y axis
+    if (from.x !== to.x) return false;
+
     // Collisions not allowed
     if (board.get(to) !== null) return false;
 
