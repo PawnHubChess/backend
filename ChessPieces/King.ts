@@ -15,4 +15,8 @@ export class King extends ChessPiece {
 
     return true;
   }
+
+  toFEN(): string {
+      return this.isWhite ? "K" : "k";
+  }
 }

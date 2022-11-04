@@ -15,4 +15,8 @@ export class Knight extends ChessPiece {
 
     return true;
   }
+
+  toFEN(): string {
+      return this.isWhite ? "N" : "n";
+  }
 }

@@ -17,4 +17,8 @@ export class Bishop extends ChessPiece {
 
     return true;
   }
+
+  toFEN(): string {
+      return this.isWhite ? "B" : "b";
+  }
 }

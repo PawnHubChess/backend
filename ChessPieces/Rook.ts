@@ -17,4 +17,8 @@ export class Rook extends ChessPiece {
 
     return true;
   }
+
+  toFEN(): string {
+      return this.isWhite ? "R" : "r";
+  }
 }

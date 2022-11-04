@@ -20,4 +20,8 @@ export class Queen extends ChessPiece {
 
     return true;
   }
+
+  toFEN(): string {
+      return this.isWhite ? "Q" : "q";
+  }
 }

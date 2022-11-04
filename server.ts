@@ -82,12 +82,6 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
     isHost = false;
   } else return;
   
-    console.log(oldWs)
-    console.log(id)
-    console.log(oldWs.reconnectCode)
-    console.log(reconnectCode)
-    console.log(ws.reconnectCode)
-  
   if (oldWs.readyState === 1) {
     ws.send(JSON.stringify({
       "type": "error",

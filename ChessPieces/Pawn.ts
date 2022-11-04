@@ -38,4 +38,8 @@ export class Pawn extends ChessPiece {
   isOneStepDiagonal(from: BoardPosition, to: BoardPosition) {
     return (Math.abs(from.x - to.x) === 1 && Math.abs(from.y - to.y) === 1);
   }
+
+  toFEN(): string {
+    return this.isWhite ? "P" : "p";
+  }
 }

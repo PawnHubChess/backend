@@ -27,6 +27,30 @@ export class Board {
     if (pieceAtPos === null) return false;
     return pieceAtPos.validateMove(from, to, this);
   }
+
+  toFEN(): string {
+    const fen = this.state.map((row) => {
+      let fenRow = "";
+      let emptySpaces = 0;
+      for (const piece of row.reverse()) {
+        if (piece === null) {
+          emptySpaces++;
+        } else {
+          if (emptySpaces > 0) {
+            fenRow += emptySpaces.toString();
+            emptySpaces = 0;
+          }
+          fenRow += piece.toFEN();
+        }
+      }
+      if (emptySpaces > 0) {
+        fenRow += emptySpaces.toString();
+      }
+      return fenRow;
+    }).join("/");
+
+    return fen;
+  }
 }
 
 function initBoard(): (ChessPiece | null)[][] {

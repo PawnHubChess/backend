@@ -17,7 +17,7 @@ export class Game {
   sendMatchedInfo() {
     const msg = JSON.stringify({
       "type": "matched",
-      "board": this.board,
+      "fen": this.board.toFEN() + " w",
     });
     this.hostWs.send(msg);
     this.attendeeWs!.send(msg);

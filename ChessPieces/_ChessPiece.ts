@@ -14,6 +14,8 @@ export abstract class ChessPiece {
     board: Board,
   ): boolean;
 
+  abstract toFEN(): string;
+
   toJSON() {
     return {
       "type": this.constructor.name,
