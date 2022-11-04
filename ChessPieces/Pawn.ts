@@ -25,7 +25,7 @@ export class Pawn extends ChessPiece {
 
     // 2 steps from home row
     // BoardPosition cannot be out of bounds, thus a move from row 7 to 9 is impossible
-    if (from.y === 1 || from.y === 6 && Math.abs(from.y - to.y) === 2) {
+    if ((from.y === 1 || from.y === 6) && Math.abs(from.y - to.y) === 2) {
       const intermediate = board.get(
         new BoardPosition(from.x, from.y + (this.isWhite ? 1 : -1)),
       );
