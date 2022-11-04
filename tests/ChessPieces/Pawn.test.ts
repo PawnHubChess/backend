@@ -84,6 +84,9 @@ Deno.test("pawn black diagonal take front right same color", () =>
 Deno.test("pawn white diagonal take front right", () =>
   testCollision("B2", "C3", true, "C3", new Pawn(false), true));
 
+  Deno.test("pawn white diagonal take front right no opponent", () =>
+  testCollision("B2", "C3", true, "C3", null, false));
+
 // Collisions
 
 Deno.test("pawn black forward 1 collision", () =>
