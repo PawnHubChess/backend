@@ -22,6 +22,13 @@ export class Board {
     this.state[pos.y][pos.x] = piece;
   }
 
+  move(from: BoardPosition, to: BoardPosition) {
+    const piece = this.get(from);
+    if (piece === null) throw new Error("No piece at " + from.toString());
+    this.set(from, null);
+    this.set(to, piece);
+  }
+
   validateMove(from: BoardPosition, to: BoardPosition): boolean {
     const pieceAtPos = this.get(from);
     if (pieceAtPos === null) return false;

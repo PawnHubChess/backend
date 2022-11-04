@@ -34,7 +34,10 @@ export class Game {
     return this.board.validateMove(from, to);
   }
 
-  relayMove(playerId: string, from: BoardPosition, to: BoardPosition) {
+  makeMove(playerId: string, from: BoardPosition, to: BoardPosition) {
+    // Apply change locally
+    this.board.move(from, to);
+    // Relay move to other player
     const otherPlayerWs = this.hostId === playerId
       ? this.attendeeWs
       : this.hostWs;

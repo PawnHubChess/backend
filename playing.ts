@@ -30,7 +30,7 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
     "to": to,
   }));
   
-  game.relayMove(ws.id!, fromPos, toPos);
+  game.makeMove(ws.id!, fromPos, toPos);
   checkGameWon();
 }
 

@@ -116,11 +116,16 @@ Deno.test("toFEN D4", () => {
   assertEquals(board.toFEN(), "8/8/8/8/3P4/8/8/8");
 })
 
-Deno.test("black pawn from D4 to D5", () => {
+Deno.test("black pawn D4 → D5 valid", () => {
   const board = new Board(initEmptyBoard());
-  const position = new BoardPosition("D4");
-  board.set(position, new Pawn(true));
-  const valid = board.validateMove(position, new BoardPosition("D5"));
+  board.set(new BoardPosition("D4"), new Pawn(true));
+  const valid = board.validateMove(new BoardPosition("D4"), new BoardPosition("D5"));
   assertEquals(valid, true);
+})
+
+Deno.test("black pawn D4 → D5 board corret", () => {
+  const board = new Board(initEmptyBoard());
+  board.set(new BoardPosition("D4"), new Pawn(true));
+  board.move(new BoardPosition("D4"), new BoardPosition("D5"));
   assertEquals(board.toFEN(), "8/8/8/3P4/8/8/8/8");
 })
