@@ -41,6 +41,8 @@ Deno.test("pawn black forward 2 from B7", () => testMove("B7", "B5", false, true
 
 Deno.test("pawn black forward 3 from B7", () => testMove("B7", "B4", false, false));
 
+Deno.test("pawn white forward 3 from E2", () => testMove("E2", "E5", true, false));
+
 Deno.test("pawn black forward 1 from B6", () => testMove("B6", "B5", false, true));
 
 Deno.test("pawn black forward 2 from B6", () => testMove("B6", "B4", false, false));
