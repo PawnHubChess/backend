@@ -7,7 +7,7 @@ import {
   handleConnectHost,
   handleDeclineAttendeeRequest,
 } from "./matchmaking.ts";
-import { handleMakeMove } from "./playing.ts";
+import { handleGetBoard, handleMakeMove } from "./playing.ts";
 import {
   closeGameByHostId,
   findGameById,
@@ -36,6 +36,9 @@ function handleMessage(ws: ExtendedWs, data: any) {
       break;
     case "send-move":
       handleMakeMove(ws, data.from, data.to);
+      break;
+    case "get-board":
+      handleGetBoard(ws);
       break;
     default:
       console.log("Unknown message type: " + data.type);

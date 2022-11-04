@@ -34,6 +34,14 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
   checkGameWon();
 }
 
+export function handleGetBoard(ws: ExtendedWs) {
+  const game = findGameById(ws.id!)!;
+  ws.send(JSON.stringify({
+    "type": "board",
+    "fen": game.board.toFEN(),
+  }));
+}
+
 function checkGameWon() {
 }
 
