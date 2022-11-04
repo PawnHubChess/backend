@@ -38,7 +38,7 @@ export function handleGetBoard(ws: ExtendedWs) {
   const game = findGameById(ws.id!)!;
   ws.send(JSON.stringify({
     "type": "board",
-    "fen": game.board.toFEN(),
+    "fen": game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
   }));
 }
 

@@ -8,16 +8,18 @@ export class Game {
   attendeeId: string | undefined;
   attendeeWs: ExtendedWs | undefined;
   board: Board = new Board();
+  nextMoveWhite: boolean;
 
   constructor(hostId: string, hostWs: ExtendedWs) {
     this.hostId = hostId;
     this.hostWs = hostWs;
+    this.nextMoveWhite = true;
   }
 
   sendMatchedInfo() {
     const msg = JSON.stringify({
       "type": "matched",
-      "fen": this.board.toFEN() + " w",
+      "fen": this.board.toFEN() + (this.nextMoveWhite ? " w" : " b"),
     });
     this.hostWs.send(msg);
     this.attendeeWs!.send(msg);
@@ -26,8 +28,10 @@ export class Game {
   validateCorrectPlayerMoved(from: BoardPosition, id: string): boolean {
     // Host is always black
     const shouldBeWhite = id === this.attendeeId;
-    const pieceIsWhite = this.board.get(from)?.isWhite;
-    return shouldBeWhite === pieceIsWhite;
+    // Check if this player is allowed to make the next move
+    if (shouldBeWhite !== this.nextMoveWhite) return false;
+    // Check if the piece is the correct color
+    return shouldBeWhite === this.board.get(from)?.isWhite;
   }
 
   validateMove(from: BoardPosition, to: BoardPosition) {
@@ -37,6 +41,8 @@ export class Game {
   makeMove(playerId: string, from: BoardPosition, to: BoardPosition) {
     // Apply change locally
     this.board.move(from, to);
+    // Toggle next player
+    this.nextMoveWhite = !this.nextMoveWhite;
     // Relay move to other player
     const otherPlayerWs = this.hostId === playerId
       ? this.attendeeWs
