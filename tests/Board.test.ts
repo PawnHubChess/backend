@@ -109,23 +109,28 @@ Deno.test("board setup empty fields", () => {
   assertEquals(board.get(new BoardPosition("H4")), null);
 })
 
-Deno.test("toFEN D4", () => {
+Deno.test("board toFEN D4", () => {
   const board = new Board(initEmptyBoard());
   const position = new BoardPosition("D4");
   board.set(position, new Pawn(true));
   assertEquals(board.toFEN(), "8/8/8/8/3P4/8/8/8");
 })
 
-Deno.test("black pawn D4 → D5 valid", () => {
+Deno.test("board black pawn D4 → D5 valid", () => {
   const board = new Board(initEmptyBoard());
   board.set(new BoardPosition("D4"), new Pawn(true));
   const valid = board.validateMove(new BoardPosition("D4"), new BoardPosition("D5"));
   assertEquals(valid, true);
 })
 
-Deno.test("black pawn D4 → D5 board corret", () => {
+Deno.test("board black pawn D4 → D5 board corret", () => {
   const board = new Board(initEmptyBoard());
   board.set(new BoardPosition("D4"), new Pawn(true));
   board.move(new BoardPosition("D4"), new BoardPosition("D5"));
   assertEquals(board.toFEN(), "8/8/8/3P4/8/8/8/8");
+})
+
+Deno.test("board setup FEN", () => {
+  const board = new Board();
+  assertEquals(board.toFEN(), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 })
