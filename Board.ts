@@ -39,7 +39,7 @@ export class Board {
     const fen = this.state.map((row) => {
       let fenRow = "";
       let emptySpaces = 0;
-      for (const piece of row.reverse()) {
+      for (const piece of row.slice().reverse()) {
         if (piece === null) {
           emptySpaces++;
         } else {
@@ -54,7 +54,7 @@ export class Board {
         fenRow += emptySpaces.toString();
       }
       return fenRow;
-    }).reverse().join("/");
+    }).slice().reverse().join("/");
 
     return fen;
   }
