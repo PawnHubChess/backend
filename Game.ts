@@ -44,13 +44,21 @@ export class Game {
     // Toggle next player
     this.nextMoveWhite = !this.nextMoveWhite;
     // Relay move to other player
-    const otherPlayerWs = this.hostId === playerId
-      ? this.attendeeWs
-      : this.hostWs;
-    otherPlayerWs!.send(JSON.stringify({
+    this.sendToOpponent(playerId, {
       "type": "receive-move",
       "from": from.toString(),
       "to": to.toString(),
-    }));
+    });
+  }
+
+  sendToOpponent(id: string, data: any) {
+    const otherPlayerWs = this.isHost(id)
+      ? this.attendeeWs
+      : this.hostWs;
+    otherPlayerWs!.send(JSON.stringify(data));
+  }
+
+  isHost(id: string) {
+    return this.hostId === id;
   }
 }
