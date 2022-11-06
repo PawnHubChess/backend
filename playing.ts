@@ -47,14 +47,14 @@ export function handleGetBoard(ws: ExtendedWs) {
   }));
 }
 
-export function handleDisconnectMessage(ws: ExtendedWs) {
-  const game = findGameById(ws.id!)!;
+export function handleDisconnected(id: string) {
+  const game = findGameById(id);
   if (!game) return;
-  game.sendToOpponent(ws.id!, {
+  game.sendToOpponent(id, {
     "type": "opponent-disconnected",
   });
-  if (game.isHost(ws.id!)) closeGameByHostId(ws.id!);
-  else removeAttendeeFromGame(ws.id!);
+  if (game.isHost(id)) closeGameByHostId(id);
+  else removeAttendeeFromGame(id);
 }
 
 function checkGameWon() {

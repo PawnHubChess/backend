@@ -7,7 +7,7 @@ import {
   handleConnectHost,
   handleDeclineAttendeeRequest,
 } from "./matchmaking.ts";
-import { handleDisconnectMessage, handleGetBoard, handleMakeMove } from "./playing.ts";
+import { handleDisconnected, handleGetBoard, handleMakeMove } from "./playing.ts";
 import {
   closeGameByHostId,
   findGameById,
@@ -41,7 +41,7 @@ function handleMessage(ws: ExtendedWs, data: any) {
       handleGetBoard(ws);
       break;
     case "disconnect":
-      handleDisconnectMessage(ws);
+      handleDisconnected(ws.id!);
       break;
     default:
       console.log("Unknown message type: " + data.type);
