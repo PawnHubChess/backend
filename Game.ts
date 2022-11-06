@@ -52,10 +52,12 @@ export class Game {
   }
 
   sendToOpponent(id: string, data: any) {
-    const otherPlayerWs = this.isHost(id)
-      ? this.attendeeWs
-      : this.hostWs;
-    otherPlayerWs!.send(JSON.stringify(data));
+    const otherPlayerWs = this.isHost(id) ? this.attendeeWs : this.hostWs;
+    if (!otherPlayerWs) {
+      console.warn(`No other player found for ${id} and ${data}`);
+      return;
+    }
+    otherPlayerWs.send(JSON.stringify(data));
   }
 
   isHost(id: string) {

@@ -28,6 +28,15 @@ export function gameExists(hostId: string): boolean {
   return typeof findGameByHostid(hostId) !== "undefined";
 }
 
+export function findWsById(id: string): ExtendedWs | undefined {
+  const game = findGameById(id);
+  if (!game) return;
+
+  if (game.hostWs.id === id) return game.hostWs;
+  else if (game.attendeeWs?.id === id) return game.attendeeWs;
+  else return;
+}
+
 function addAttendeeToGame(
   hostId: string,
   attendeeId: string,

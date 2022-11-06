@@ -7,10 +7,15 @@ import {
   handleConnectHost,
   handleDeclineAttendeeRequest,
 } from "./matchmaking.ts";
-import { handleDisconnected, handleGetBoard, handleMakeMove } from "./playing.ts";
+import {
+  handleDisconnected,
+  handleGetBoard,
+  handleMakeMove,
+} from "./playing.ts";
 import {
   closeGameByHostId,
   findGameById,
+  findWsById,
   removeAttendeeFromGame,
 } from "./serverstate.ts";
 
@@ -53,33 +58,24 @@ function handleError(e: Event | ErrorEvent) {
 }
 
 function handleDisconnect(ws: ExtendedWs) {
-  //@ts-ignore Custom property added to the websocket
-  const id = ws.id;
-  console.log(`Disconnected from client (${id})`);
-
-  if (!id) return;
-
-  if (id.length == 4) handleDisconnectHost(id);
-  else handleDisconnectAttendee(id);
-}
-
-function handleDisconnectHost(id: string) {
-  // todo notify attendee
-  // Close game after reconnect timeout
-  //closeGameByHostId(id);
-}
-
-function handleDisconnectAttendee(id: string) {
-  // Remove from game after reconnect timeout
-  //removeAttendeeFromGame(id);
-  // todo notify host
+  const id = ws.id!;
+  const reconCode = ws.reconnectCode!;
+  // Only continue if the player was in a game
+  if (!findGameById(id)) return;
+  setTimeout(() => {
+    // If reconnectCode is the same after 20 seconds, i.e. no reconnect happened, notify opponent
+    const wsAssociatedWithId = findWsById(id);
+    if (wsAssociatedWithId?.reconnectCode === reconCode) {
+      handleDisconnected(id);
+    }
+  }, 20 * 1000);
 }
 
 function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
   const game = findGameById(id);
   let oldWs: ExtendedWs | undefined;
   let isHost: boolean | undefined;
-  
+
   if (game?.hostWs.id === id) {
     oldWs = game.hostWs;
     isHost = true;
@@ -87,7 +83,7 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
     oldWs = game.attendeeWs;
     isHost = false;
   } else return;
-  
+
   if (oldWs.readyState === 1) {
     ws.send(JSON.stringify({
       "type": "error",
@@ -126,7 +122,8 @@ function reqHandler(req: Request) {
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
   const ews = ws as ExtendedWs;
-  const ipaddress = req.headers.get("x-forwarded-for") || req.headers.get("host");
+  const ipaddress = req.headers.get("x-forwarded-for") ||
+    req.headers.get("host");
 
   ews.onopen = (ev) => handleConnected(ews, ev);
   ews.onmessage = (m) => handleMessage(ews, JSON.parse(m.data));
