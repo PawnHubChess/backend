@@ -53,8 +53,9 @@ export class Game {
 
   sendToOpponent(id: string, data: any) {
     const otherPlayerWs = this.isHost(id) ? this.attendeeWs : this.hostWs;
-    if (!otherPlayerWs) {
+    if (!otherPlayerWs || otherPlayerWs.readyState !== WebSocket.OPEN) {
       console.warn(`No other player found for ${id} and ${data}`);
+      // ws queue messages if opponent ws is not ready. Will be implemented when switching to cloud native
       return;
     }
     otherPlayerWs.send(JSON.stringify(data));
