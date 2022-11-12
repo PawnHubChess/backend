@@ -16,6 +16,7 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
       "type": "reject-move",
       "from": from,
       "to": to,
+      "fen": game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
     }));
     return;
   }
@@ -24,17 +25,21 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
       "type": "reject-move",
       "from": from,
       "to": to,
+      "fen": game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
+      // todo this should be a function: fen + next move
     }));
     return;
   }
+
+  game.makeMove(ws.id!, fromPos, toPos);
 
   ws.send(JSON.stringify({
     "type": "accept-move",
     "from": from,
     "to": to,
+    "fen": game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
   }));
 
-  game.makeMove(ws.id!, fromPos, toPos);
   checkGameWon();
 }
 
