@@ -17,6 +17,7 @@ export class BoardPosition {
       // string
       const input = args[0] as string
       if (!input.match(/^\w\d$/)) throw(new Error("Malformatted Input"))
+      // todo handle malformed input
 
       this.x = xValues.indexOf(input.charAt(0).toUpperCase());
       this.y = +input.charAt(1) - 1;
