@@ -48,6 +48,7 @@ export class Game {
       "type": "receive-move",
       "from": from.toString(),
       "to": to.toString(),
+      "fen": this.board.toFEN() + (this.nextMoveWhite ? " w" : " b"),
     });
   }
 
