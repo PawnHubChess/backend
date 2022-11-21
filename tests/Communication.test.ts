@@ -41,3 +41,12 @@ Deno.test("connect attendee without code declined", () => {
   assertSpyCalls(spy, 1);
   assert(spy.calls[0].args[0].match(/request-declined/));
 });
+
+Deno.test("connect attendee nonexitent host declined", () => {
+  const { stub, spy } = getStubAndSpy();
+
+  handleMessage(stub, { type: "connect-attendee", host: "01234", code: "1234" });
+
+  assertSpyCalls(spy, 1);
+  assert(spy.calls[0].args[0].match(/request-declined/));
+});
