@@ -182,3 +182,20 @@ Deno.test("reject invalid move", () => {
   assertSpyCalls(attendeeSpy, 1);
   assertMatch(attendeeSpy.calls[0].args[0], /reject-move/);
 });
+
+Deno.test("reject first move by host", () => {
+    const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+    const { stub: attendeeStub } = getStubAndSpy();
+    
+    establishConnection(hostStub, hostSpy, attendeeStub);
+    
+    hostSpy.calls.length = 0;
+    handleMessage(hostStub, {
+        type: "send-move",
+        from: "A7",
+        to: "A6",
+    });
+    
+    assertSpyCalls(hostSpy, 1);
+    assertMatch(hostSpy.calls[0].args[0], /reject-move/);
+})
