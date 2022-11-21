@@ -11,22 +11,22 @@ import {
 import { ExtendedWs } from "../ExtendedWs.ts";
 import { handleMessage } from "../server.ts";
 
-const getWsStub = (send: Spy) => {
-  const stub = { readyState: 1 } as unknown as ExtendedWs;
-  stub.send = send;
-  return stub;
+const getStubAndSpy = () => {
+  const ws = { readyState: 1 } as unknown as ExtendedWs;
+  const send = spy();
+  ws.send = send;
+  return { stub: ws, spy: send };
 };
 const uuid_regex =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 Deno.test("host gets correct id and reconnectcode", () => {
-  const sendSpy = spy();
-  const wsStub = getWsStub(sendSpy);
+  const { stub, spy } = getStubAndSpy();
 
-  handleMessage(wsStub, { type: "connect-host" });
+  handleMessage(stub, { type: "connect-host" });
 
-  assertSpyCalls(sendSpy, 1);
-  const calledData = JSON.parse(sendSpy.calls[0].args[0]);
+  assertSpyCalls(spy, 1);
+  const calledData = JSON.parse(spy.calls[0].args[0]);
 
   assertEquals(calledData.type, "connected-id");
   assert(calledData.id.match(/^0\d{3}$/));
@@ -34,11 +34,10 @@ Deno.test("host gets correct id and reconnectcode", () => {
 });
 
 Deno.test("connect attendee without code declined", () => {
-  const sendSpy = spy();
-  const wsStub = getWsStub(sendSpy);
+  const { stub, spy } = getStubAndSpy();
 
-  handleMessage(wsStub, { type: "connect-attendee" });
+  handleMessage(stub, { type: "connect-attendee" });
 
-  assertSpyCalls(sendSpy, 1);
-  assert(sendSpy.calls[0].args[0].match(/request-declined/));
+  assertSpyCalls(spy, 1);
+  assert(spy.calls[0].args[0].match(/request-declined/));
 });
