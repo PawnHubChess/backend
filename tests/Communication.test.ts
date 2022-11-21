@@ -1,10 +1,8 @@
 import {
-  assert,
   assertEquals,
-assertMatch,
+  assertMatch,
 } from "https://deno.land/std@0.160.0/testing/asserts.ts";
 import {
-  assertSpyCall,
   assertSpyCalls,
   Spy,
   spy,
@@ -46,8 +44,40 @@ Deno.test("connect attendee without code declined", () => {
 Deno.test("connect attendee nonexitent host declined", () => {
   const { stub, spy } = getStubAndSpy();
 
-  handleMessage(stub, { type: "connect-attendee", host: "01234", code: "1234" });
+  handleMessage(stub, {
+    type: "connect-attendee",
+    host: "01234",
+    code: "1234",
+  });
 
   assertSpyCalls(spy, 1);
-  assertMatch(spy.calls[0].args[0], /request-declined2/);
+  assertMatch(spy.calls[0].args[0], /request-declined/);
+});
+
+function getHostId(hostStub: ExtendedWs, hostSpy: Spy): string {
+  handleMessage(hostStub, { type: "connect-host" });
+  assertSpyCalls(hostSpy, 1);
+  return JSON.parse(hostSpy.calls[0].args[0]).id;
+}
+
+function sendAttendeeConnectionRequest(
+  attendeeStub: ExtendedWs,
+  hostId: string,
+) {
+  handleMessage(attendeeStub, {
+    type: "connect-attendee",
+    host: hostId,
+    code: "1234",
+  });
+}
+
+Deno.test("connection request sent to host", () => {
+  const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+  const { stub: attendeeStub } = getStubAndSpy();
+
+  const hostId = getHostId(hostStub, hostSpy);
+  sendAttendeeConnectionRequest(attendeeStub, hostId);
+
+  assertSpyCalls(hostSpy, 2);
+  assertMatch(hostSpy.calls[1].args[0], /verify-attendee-request/);
 });
