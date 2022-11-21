@@ -1,6 +1,7 @@
 import {
   assert,
   assertEquals,
+assertMatch,
 } from "https://deno.land/std@0.160.0/testing/asserts.ts";
 import {
   assertSpyCall,
@@ -29,8 +30,8 @@ Deno.test("host gets correct id and reconnectcode", () => {
   const calledData = JSON.parse(spy.calls[0].args[0]);
 
   assertEquals(calledData.type, "connected-id");
-  assert(calledData.id.match(/^0\d{3}$/));
-  assert(calledData["reconnect-code"].match(uuid_regex));
+  assertMatch(calledData.id, /^0\d{3}$/);
+  assertMatch(calledData["reconnect-code"], uuid_regex);
 });
 
 Deno.test("connect attendee without code declined", () => {
@@ -39,7 +40,7 @@ Deno.test("connect attendee without code declined", () => {
   handleMessage(stub, { type: "connect-attendee" });
 
   assertSpyCalls(spy, 1);
-  assert(spy.calls[0].args[0].match(/request-declined/));
+  assertMatch(spy.calls[0].args[0], /request-declined/);
 });
 
 Deno.test("connect attendee nonexitent host declined", () => {
@@ -48,5 +49,5 @@ Deno.test("connect attendee nonexitent host declined", () => {
   handleMessage(stub, { type: "connect-attendee", host: "01234", code: "1234" });
 
   assertSpyCalls(spy, 1);
-  assert(spy.calls[0].args[0].match(/request-declined/));
+  assertMatch(spy.calls[0].args[0], /request-declined2/);
 });
