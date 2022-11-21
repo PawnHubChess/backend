@@ -21,8 +21,9 @@ import {
 
 // WebSocket stuff
 
+// Rewire is not yet available for Deno; export for testing
 // deno-lint-ignore no-explicit-any
-function handleMessage(ws: ExtendedWs, data: any) {
+export function handleMessage(ws: ExtendedWs, data: any) {
   switch (data.type) {
     case "connect-host":
       handleConnectHost(ws);

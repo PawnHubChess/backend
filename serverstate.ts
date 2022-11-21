@@ -69,7 +69,7 @@ const pendingConnectRequests: Array<ConnectRequest> = [];
 export function createConnectRequest(
   attendeeId: string,
   connectTo: string,
-  ws: WebSocket,
+  ws: ExtendedWs,
 ) {
   if (findConnectRequestByAttendeeId(attendeeId) !== undefined) {
     throw new Error("Attendee already has a connect request");
@@ -112,7 +112,7 @@ export function acceptConnectRequest(attendeeId: string): Game | null {
   return game;
 }
 
-export function declineAttendeeRequest(attendeeId: string): WebSocket | null {
+export function declineAttendeeRequest(attendeeId: string): ExtendedWs | null {
   const request = findConnectRequestByAttendeeId(attendeeId);
   if (!request) {
     return null;
