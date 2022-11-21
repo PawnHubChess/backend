@@ -2,7 +2,6 @@ import {
   assertEquals,
   assertMatch,
 } from "https://deno.land/std@0.160.0/testing/asserts.ts";
-import { DenoStdInternalError } from "https://deno.land/std@0.160.0/_util/assert.ts";
 import {
   assertSpyCalls,
   Spy,
@@ -229,4 +228,34 @@ Deno.test("relay move two way", () => {
     assertEquals(attendeeMoveData.from, "A7");
     assertEquals(attendeeMoveData.to, "A5");
     assertEquals(attendeeMoveData.fen, "rnbqkbnr/1ppppppp/8/p7/P7/8/1PPPPPPP/RNBQKBNR w");	
+})
+
+Deno.test("get fen", () => {
+    const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+    const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();  
+    establishConnection(hostStub, hostSpy, attendeeStub);
+    handleMessage(attendeeStub, {
+        type: "send-move",
+        from: "A2",
+        to: "A4",
+      })
+    handleMessage(hostStub, {
+        type: "send-move",
+        from: "B7",
+        to: "B5",
+    })
+    handleMessage(attendeeStub, {
+        type: "send-move",
+        from: "A4",
+        to: "B5",
+      })
+
+    attendeeSpy.calls.length = 0;
+  
+    handleMessage(attendeeStub, { type: "get-board" });
+
+    assertSpyCalls(attendeeSpy, 1);
+    const attendeeMoveData = JSON.parse(attendeeSpy.calls[0].args[0]);
+    assertEquals(attendeeMoveData.type, "board");
+    assertEquals(attendeeMoveData.fen, "rnbqkbnr/p1pppppp/8/1P6/8/8/1PPPPPPP/RNBQKBNR b");
 })
