@@ -139,3 +139,29 @@ Deno.test("accept connection request", () => {
   // Attendee: matched message
   assertMatch(attendeeSpy.calls[1].args[0], /matched/);
 });
+
+Deno.test("relay move", () => {
+  const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+  const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
+
+  establishConnection(hostStub, hostSpy, attendeeStub);
+
+  // Reset spy calls
+  hostSpy.calls.length = 0;
+  attendeeSpy.calls.length = 0;
+
+  handleMessage(attendeeStub, {
+    type: "send-move",
+    from: "A2",
+    to: "A4",
+  });
+
+  assertSpyCalls(attendeeSpy, 1);
+  assertMatch(attendeeSpy.calls[0].args[0], /accept-move/);
+
+  assertSpyCalls(hostSpy, 1);
+  const hostMoveData = JSON.parse(hostSpy.calls[0].args[0]);
+  assertEquals(hostMoveData.type, "receive-move");
+  assertEquals(hostMoveData.from, "A2");
+  assertEquals(hostMoveData.to, "A4");
+});
