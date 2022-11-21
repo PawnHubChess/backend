@@ -4,22 +4,27 @@ import {
 } from "https://deno.land/std@0.160.0/testing/asserts.ts";
 import {
   assertSpyCall,
+  Spy,
   spy,
 } from "https://deno.land/std@0.165.0/testing/mock.ts";
 import { ExtendedWs } from "../ExtendedWs.ts";
 import { handleMessage } from "../server.ts";
 
+const getWsStub = (send: Spy) => {
+  const stub =  { readyState: 1 } as unknown as ExtendedWs;
+  stub.send = send;
+  return stub;
+};
 const uuid_regex =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 Deno.test("host gets correct id and reconnectcode", () => {
   let spyCalledWithMessage: string | undefined;
 
-  const wsStub = { readyState: 1 } as unknown as ExtendedWs;
   const sendSpy = spy((msg: string) => {
-    spyCalledWithMessage = msg;
-  });
-  wsStub.send = sendSpy;
+      spyCalledWithMessage = msg;
+    });
+    const wsStub = getWsStub(sendSpy);
 
   handleMessage(wsStub, { type: "connect-host" });
 
