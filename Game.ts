@@ -1,6 +1,7 @@
 import { Board } from "./Board.ts";
 import { BoardPosition } from "./BoardPosition.ts";
 import { ExtendedWs } from "./ExtendedWs.ts";
+import { sendMessage } from "./server.ts";
 
 export class Game {
   hostId: string;
@@ -17,12 +18,12 @@ export class Game {
   }
 
   sendMatchedInfo() {
-    const msg = JSON.stringify({
+    const msg = {
       "type": "matched",
       "fen": this.board.toFEN() + (this.nextMoveWhite ? " w" : " b"),
-    });
-    this.hostWs.send(msg);
-    this.attendeeWs!.send(msg);
+    };
+    sendMessage(this.hostWs, msg);
+    sendMessage(this.attendeeWs!, msg);
   }
 
   validateCorrectPlayerMoved(from: BoardPosition, id: string): boolean {
@@ -45,21 +46,23 @@ export class Game {
     this.nextMoveWhite = !this.nextMoveWhite;
     // Relay move to other player
     this.sendToOpponent(playerId, {
-      "type": "receive-move",
-      "from": from.toString(),
-      "to": to.toString(),
-      "fen": this.board.toFEN() + (this.nextMoveWhite ? " w" : " b"),
+      type: "receive-move",
+      from: from.toString(),
+      to: to.toString(),
+      fen: this.board.toFEN() + (this.nextMoveWhite ? " w" : " b"),
     });
   }
 
   sendToOpponent(id: string, data: any) {
     const otherPlayerWs = this.isHost(id) ? this.attendeeWs : this.hostWs;
     if (!otherPlayerWs || otherPlayerWs.readyState !== WebSocket.OPEN) {
-      console.warn(`No other player found for ${id} and ${JSON.stringify(data)}`);
+      console.warn(
+        `No other player found for ${id} and ${JSON.stringify(data)}`,
+      );
       // ws queue messages if opponent ws is not ready. Will be implemented when switching to cloud native
       return;
     }
-    otherPlayerWs.send(JSON.stringify(data));
+    sendMessage(otherPlayerWs, data);
   }
 
   isHost(id: string) {

@@ -86,10 +86,10 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
   } else return;
 
   if (oldWs.readyState === 1) {
-    ws.send(JSON.stringify({
-      "type": "error",
-      "error": "aready-connected",
-    }));
+    sendMessage(ws, {
+      type: "error",
+      error: "aready-connected",
+    });
     return;
   }
 
@@ -101,17 +101,23 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
     if (isHost) game.hostWs = ws;
     else game.attendeeWs = ws;
 
-    ws.send(JSON.stringify({
+    sendMessage(ws, {
       type: "reconnected",
       "reconnect-code": ws.reconnectCode,
-    }));
+    });
   } else {
-    ws.send(JSON.stringify({
-      "type": "error",
-      "error": "wrong-code",
-    }));
+    sendMessage(ws, {
+      type: "error",
+      error: "wrong-code",
+    });
     return;
   }
+}
+
+// deno-lint-ignore no-explicit-any
+export function sendMessage(ws: ExtendedWs | undefined, msg: any) {
+  if (!ws || ws.readyState !== 1) return;
+  ws.send(JSON.stringify(msg));
 }
 
 function reqHandler(req: Request) {

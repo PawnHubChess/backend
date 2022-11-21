@@ -1,5 +1,6 @@
 import { BoardPosition } from "./BoardPosition.ts";
 import { ExtendedWs } from "./ExtendedWs.ts";
+import { sendMessage } from "./server.ts";
 import {
   closeGameByHostId,
   findGameById,
@@ -12,33 +13,33 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
   const toPos = new BoardPosition(to);
 
   if (!game.validateMove(fromPos, toPos)) {
-    ws.send(JSON.stringify({
-      "type": "reject-move",
-      "from": from,
-      "to": to,
-      "fen": game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
-    }));
+    sendMessage(ws, {
+      type: "reject-move",
+      from: from,
+      to: to,
+      fen: game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
+    });
     return;
   }
   if (!game.validateCorrectPlayerMoved(fromPos, ws.id!)) {
-    ws.send(JSON.stringify({
-      "type": "reject-move",
-      "from": from,
-      "to": to,
-      "fen": game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
+    sendMessage(ws, {
+      type: "reject-move",
+      from: from,
+      to: to,
+      fen: game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
       // todo this should be a function: fen + next move
-    }));
+    });
     return;
   }
 
   game.makeMove(ws.id!, fromPos, toPos);
 
-  ws.send(JSON.stringify({
-    "type": "accept-move",
-    "from": from,
-    "to": to,
-    "fen": game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
-  }));
+  sendMessage(ws, {
+    type: "accept-move",
+    from: from,
+    to: to,
+    fen: game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
+  });
 
   checkGameWon();
 }
@@ -46,10 +47,10 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
 export function handleGetBoard(ws: ExtendedWs) {
   const game = findGameById(ws.id!)!;
   // todo handle not in game
-  ws.send(JSON.stringify({
-    "type": "board",
-    "fen": game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
-  }));
+  sendMessage(ws, {
+    type: "board",
+    fen: game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
+  });
 }
 
 export function handleDisconnected(id: string) {
