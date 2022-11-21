@@ -55,6 +55,10 @@ Deno.test("connect attendee nonexitent host declined", () => {
   assertMatch(spy.calls[0].args[0], /request-declined/);
 });
 
+//
+// Two-Way Communication
+//
+
 function getHostId(hostStub: ExtendedWs, hostSpy: Spy): string {
   handleMessage(hostStub, { type: "connect-host" });
   assertSpyCalls(hostSpy, 1);
@@ -69,6 +73,22 @@ function sendAttendeeConnectionRequest(
     type: "connect-attendee",
     host: hostId,
     code: "1234",
+  });
+}
+
+function establishConnection(
+  hostStub: ExtendedWs,
+  hostSpy: Spy,
+  attendeeStub: ExtendedWs,
+) {
+  const hostId = getHostId(hostStub, hostSpy);
+  sendAttendeeConnectionRequest(attendeeStub, hostId);
+
+  assertSpyCalls(hostSpy, 2);
+  const request = JSON.parse(hostSpy.calls[1].args[0]);
+  handleMessage(hostStub, {
+    type: "accept-attendee-request",
+    clientId: request.clientId,
   });
 }
 
@@ -105,15 +125,7 @@ Deno.test("accept connection request", () => {
   const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
   const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
 
-  const hostId = getHostId(hostStub, hostSpy);
-  sendAttendeeConnectionRequest(attendeeStub, hostId);
-
-  assertSpyCalls(hostSpy, 2);
-  const request = JSON.parse(hostSpy.calls[1].args[0]);
-  handleMessage(hostStub, {
-    type: "accept-attendee-request",
-    clientId: request.clientId,
-  });
+  establishConnection(hostStub, hostSpy, attendeeStub);
 
   assertSpyCalls(hostSpy, 3);
   assertMatch(hostSpy.calls[2].args[0], /matched/);
