@@ -164,6 +164,7 @@ Deno.test("relay move", () => {
   assertEquals(hostMoveData.type, "receive-move");
   assertEquals(hostMoveData.from, "A2");
   assertEquals(hostMoveData.to, "A4");
+  assertEquals(hostMoveData.fen, "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b");
 });
 
 Deno.test("reject invalid move", () => {
@@ -227,4 +228,5 @@ Deno.test("relay move two way", () => {
     assertEquals(attendeeMoveData.type, "receive-move");
     assertEquals(attendeeMoveData.from, "A7");
     assertEquals(attendeeMoveData.to, "A5");
+    assertEquals(attendeeMoveData.fen, "rnbqkbnr/1ppppppp/8/p7/P7/8/1PPPPPPP/RNBQKBNR w");	
 })
