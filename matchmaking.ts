@@ -33,7 +33,6 @@ export function handleConnectHost(ws: ExtendedWs) {
 
   applyHostId(ws);
   applyReconnectCode(ws);
-  console.log(ws.reconnectCode);
   createHost(ws.id!, ws);
 
   sendMessage(ws, {
