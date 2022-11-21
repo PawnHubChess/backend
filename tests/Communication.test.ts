@@ -199,3 +199,32 @@ Deno.test("reject first move by host", () => {
     assertSpyCalls(hostSpy, 1);
     assertMatch(hostSpy.calls[0].args[0], /reject-move/);
 })
+
+Deno.test("relay move two way", () => {
+    const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+    const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();  
+    establishConnection(hostStub, hostSpy, attendeeStub);
+    handleMessage(attendeeStub, {
+        type: "send-move",
+        from: "A2",
+        to: "A4",
+      })
+
+    hostSpy.calls.length = 0;
+    attendeeSpy.calls.length = 0;
+  
+    handleMessage(hostStub, {
+      type: "send-move",
+      from: "A7",
+      to: "A5",
+    });
+  
+    assertSpyCalls(hostSpy, 1);
+    assertMatch(hostSpy.calls[0].args[0], /accept-move/);
+  
+    assertSpyCalls(attendeeSpy, 1);
+    const attendeeMoveData = JSON.parse(attendeeSpy.calls[0].args[0]);
+    assertEquals(attendeeMoveData.type, "receive-move");
+    assertEquals(attendeeMoveData.from, "A7");
+    assertEquals(attendeeMoveData.to, "A5");
+})
