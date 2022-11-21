@@ -2,6 +2,7 @@ import {
   assertEquals,
   assertMatch,
 } from "https://deno.land/std@0.160.0/testing/asserts.ts";
+import { DenoStdInternalError } from "https://deno.land/std@0.160.0/_util/assert.ts";
 import {
   assertSpyCalls,
   Spy,
@@ -80,4 +81,22 @@ Deno.test("connection request sent to host", () => {
 
   assertSpyCalls(hostSpy, 2);
   assertMatch(hostSpy.calls[1].args[0], /verify-attendee-request/);
+});
+
+Deno.test("decline connection request", () => {
+  const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+  const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
+
+  const hostId = getHostId(hostStub, hostSpy);
+  sendAttendeeConnectionRequest(attendeeStub, hostId);
+
+  assertSpyCalls(hostSpy, 2);
+  const request = JSON.parse(hostSpy.calls[1].args[0]);
+  handleMessage(hostStub, {
+    type: "decline-attendee-request",
+    clientId: request.clientId,
+  });
+
+  assertSpyCalls(attendeeSpy, 1);
+  assertMatch(attendeeSpy.calls[0].args[0], /request-declined/);
 });
