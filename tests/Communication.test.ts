@@ -100,3 +100,30 @@ Deno.test("decline connection request", () => {
   assertSpyCalls(attendeeSpy, 1);
   assertMatch(attendeeSpy.calls[0].args[0], /request-declined/);
 });
+
+Deno.test("accept connection request", () => {
+  const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+  const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
+
+  const hostId = getHostId(hostStub, hostSpy);
+  sendAttendeeConnectionRequest(attendeeStub, hostId);
+
+  assertSpyCalls(hostSpy, 2);
+  const request = JSON.parse(hostSpy.calls[1].args[0]);
+  handleMessage(hostStub, {
+    type: "accept-attendee-request",
+    clientId: request.clientId,
+  });
+
+  assertSpyCalls(hostSpy, 3);
+  assertMatch(hostSpy.calls[2].args[0], /matched/);
+
+  assertSpyCalls(attendeeSpy, 2);
+  // Attendee: connected-id message
+  const attendeeConnectedData = JSON.parse(attendeeSpy.calls[0].args[0]);
+  assertEquals(attendeeConnectedData.type, "connected-id");
+  assertMatch(attendeeConnectedData.id, uuid_regex);
+  assertMatch(attendeeConnectedData["reconnect-code"], uuid_regex);
+  // Attendee: matched message
+  assertMatch(attendeeSpy.calls[1].args[0], /matched/);
+});
