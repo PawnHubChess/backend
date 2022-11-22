@@ -6,6 +6,10 @@ Connecting the [physical chess board](https://github.com/PawnHubChess/client-boa
 Read the wiki at https://api.pawn-hub.de or
 connect using a WebSocket to wss://api.pawn-hub.de.
 
+## Project Structure
+![image](https://user-images.githubusercontent.com/32238636/202461111-94ce45ba-ff0e-4da6-9200-8476bb357f72.png)
+You are here: Bottom center (backend) / GitHub: backend / Version Control
+
 ## Running the backend locally
 If you have not yet installed Deno, [follow their easy installation guide](https://github.com/denoland/deno/blob/main/README.md).
 Then, simply execute:
