@@ -26,7 +26,9 @@ function wsMessagePromise(ws: WebSocket) {
 }
 
 Deno.test("connect host websocket to localhost", async () => {
-  const timeout = setTimeout(() => {throw new Error("timeout")}, 5000);
+  const timeout = setTimeout(() => {
+    throw new Error("timeout");
+  }, 5000);
 
   const ws = new WebSocket("ws://localhost:3000");
 
@@ -45,13 +47,7 @@ Deno.test("connect host websocket to localhost", async () => {
   clearTimeout(timeout);
 });
 
-Deno.test("match two websockets on localhost", async () => {
-  const timeout = setTimeout(() => {throw new Error("timeout")}, 5000);
-
-  const hostWs = new WebSocket("ws://localhost:3000");
-  const attendeeWs = new WebSocket("ws://localhost:3000");
-  await Promise.all([wsOpenPromise(hostWs), wsOpenPromise(attendeeWs)]);
-
+async function matchClients(hostWs: WebSocket, attendeeWs: WebSocket) {
   hostWs.send(JSON.stringify({ type: "connect-host" }));
   const hostId = (await wsMessagePromise(hostWs)).id;
 
@@ -64,8 +60,21 @@ Deno.test("match two websockets on localhost", async () => {
     JSON.stringify({ type: "accept-attendee-request", clientId: clientId }),
   );
   const hostResponse = await wsMessagePromise(hostWs);
+  return { response: hostResponse, hostId: hostId };
+}
 
-  assertEquals(hostResponse.type, "matched");
+Deno.test("match two websockets on localhost", async () => {
+  const timeout = setTimeout(() => {
+    throw new Error("timeout");
+  }, 5000);
+
+  const hostWs = new WebSocket("ws://localhost:3000");
+  const attendeeWs = new WebSocket("ws://localhost:3000");
+  await Promise.all([wsOpenPromise(hostWs), wsOpenPromise(attendeeWs)]);
+
+  const { response, hostId } = await matchClients(hostWs, attendeeWs);
+
+  assertEquals(response.type, "matched");
 
   const game = findGameById(hostId);
   assertExists(game?.hostWs);
