@@ -373,3 +373,25 @@ Deno.test("reconnect attendee with wrong code", () => {
   assertSpyCalls(attendeeSpy, 1);
   assertMatch(attendeeSpy.calls[0].args[0], /error/);
 });
+
+Deno.test("reconnect attendee already connected", () => {
+  const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+  const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
+  const { attendeeId } = establishConnection(
+    hostStub,
+    hostSpy,
+    attendeeStub,
+  );
+
+  const reconnectCode =
+    JSON.parse(attendeeSpy.calls[0].args[0])["reconnect-code"];
+  attendeeSpy.calls.length = 0;
+  handleMessage(attendeeStub, {
+    type: "reconnect",
+    id: attendeeId,
+    "reconnect-code": reconnectCode,
+  });
+
+  assertSpyCalls(attendeeSpy, 1);
+  assertMatch(attendeeSpy.calls[0].args[0], /error/);
+});
