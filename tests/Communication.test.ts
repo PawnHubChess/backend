@@ -6,13 +6,16 @@ import {
   assertSpyCalls,
   Spy,
   spy,
-  stub,
 } from "https://deno.land/std@0.165.0/testing/mock.ts";
 import { Board } from "../Board.ts";
 import { BoardPosition } from "../BoardPosition.ts";
 import { ExtendedWs } from "../ExtendedWs.ts";
 import { handleMessage } from "../server.ts";
-import { closeGameByHostId, findGameById } from "../serverstate.ts";
+import { findGameById } from "../serverstate.ts";
+
+function assertAttr(test: string, attr: string, valueRegex: string) {
+  assertMatch(test, new RegExp(`"${attr}":"${valueRegex}"`));
+}
 
 const getStubAndSpy = () => {
   const ws = { readyState: 1 } as unknown as ExtendedWs;
@@ -43,7 +46,7 @@ Deno.test("connect attendee without code declined", () => {
   handleMessage(stub, { type: "connect-attendee" });
 
   assertSpyCalls(spy, 1);
-  assertMatch(spy.calls[0].args[0], /request-declined/);
+  assertAttr(spy.calls[0].args[0], "type", "request-declined");
 });
 
 Deno.test("connect attendee nonexitent host declined", () => {
@@ -56,7 +59,7 @@ Deno.test("connect attendee nonexitent host declined", () => {
   });
 
   assertSpyCalls(spy, 1);
-  assertMatch(spy.calls[0].args[0], /request-declined/);
+  assertAttr(spy.calls[0].args[0], "type", "request-declined");
 });
 
 //
@@ -106,7 +109,7 @@ Deno.test("connection request sent to host", () => {
   sendAttendeeConnectionRequest(attendeeStub, hostId);
 
   assertSpyCalls(hostSpy, 2);
-  assertMatch(hostSpy.calls[1].args[0], /verify-attendee-request/);
+  assertAttr(hostSpy.calls[1].args[0], "type", "verify-attendee-request");
 });
 
 Deno.test("decline connection request", () => {
@@ -124,7 +127,7 @@ Deno.test("decline connection request", () => {
   });
 
   assertSpyCalls(attendeeSpy, 1);
-  assertMatch(attendeeSpy.calls[0].args[0], /request-declined/);
+  assertAttr(attendeeSpy.calls[0].args[0], "type", "request-declined");
 });
 
 Deno.test("accept connection request", () => {
@@ -134,7 +137,7 @@ Deno.test("accept connection request", () => {
   establishConnection(hostStub, hostSpy, attendeeStub);
 
   assertSpyCalls(hostSpy, 3);
-  assertMatch(hostSpy.calls[2].args[0], /matched/);
+  assertAttr(hostSpy.calls[2].args[0], "type", "matched");
 
   assertSpyCalls(attendeeSpy, 2);
   // Attendee: connected-id message
@@ -143,7 +146,7 @@ Deno.test("accept connection request", () => {
   assertMatch(attendeeConnectedData.id, uuid_regex);
   assertMatch(attendeeConnectedData["reconnect-code"], uuid_regex);
   // Attendee: matched message
-  assertMatch(attendeeSpy.calls[1].args[0], /matched/);
+  assertAttr(attendeeSpy.calls[1].args[0], "type", "matched");
 });
 
 Deno.test("relay move", () => {
@@ -163,7 +166,7 @@ Deno.test("relay move", () => {
   });
 
   assertSpyCalls(attendeeSpy, 1);
-  assertMatch(attendeeSpy.calls[0].args[0], /accept-move/);
+  assertAttr(attendeeSpy.calls[0].args[0], "type", "accept-move");
 
   assertSpyCalls(hostSpy, 1);
   const hostMoveData = JSON.parse(hostSpy.calls[0].args[0]);
@@ -190,7 +193,7 @@ Deno.test("reject invalid move", () => {
   });
 
   assertSpyCalls(attendeeSpy, 1);
-  assertMatch(attendeeSpy.calls[0].args[0], /reject-move/);
+  assertAttr(attendeeSpy.calls[0].args[0], "type", "reject-move");
 });
 
 Deno.test("reject first move by host", () => {
@@ -207,7 +210,7 @@ Deno.test("reject first move by host", () => {
   });
 
   assertSpyCalls(hostSpy, 1);
-  assertMatch(hostSpy.calls[0].args[0], /reject-move/);
+  assertAttr(hostSpy.calls[0].args[0], "type", "reject-move");
 });
 
 Deno.test("relay move two way", () => {
@@ -230,7 +233,7 @@ Deno.test("relay move two way", () => {
   });
 
   assertSpyCalls(hostSpy, 1);
-  assertMatch(hostSpy.calls[0].args[0], /accept-move/);
+  assertAttr(hostSpy.calls[0].args[0], "type", "accept-move");
 
   assertSpyCalls(attendeeSpy, 1);
   const attendeeMoveData = JSON.parse(attendeeSpy.calls[0].args[0]);
@@ -290,7 +293,7 @@ Deno.test("disconnect host", () => {
   handleMessage(hostStub, { type: "disconnect" });
 
   assertSpyCalls(attendeeSpy, 1);
-  assertMatch(attendeeSpy.calls[0].args[0], /opponent-disconnected/);
+  assertAttr(attendeeSpy.calls[0].args[0], "type", "opponent-disconnected");
 
   assertEquals(findGameById(hostId), undefined);
   assertEquals(findGameById(attendeeId), undefined);
@@ -314,7 +317,7 @@ Deno.test("disconnect attendee", () => {
   handleMessage(attendeeStub, { type: "disconnect" });
 
   assertSpyCalls(hostSpy, 1);
-  assertMatch(hostSpy.calls[0].args[0], /opponent-disconnected/);
+  assertAttr(hostSpy.calls[0].args[0], "type", "opponent-disconnected");
 
   assertEquals(findGameById(attendeeId), undefined);
   assertEquals(findGameById(hostId)?.board, new Board());
@@ -345,7 +348,7 @@ Deno.test("reconnect attendee", () => {
   });
 
   assertSpyCalls(attendeeSpy, 1);
-  assertMatch(attendeeSpy.calls[0].args[0], /reconnected/);
+  assertAttr(attendeeSpy.calls[0].args[0], "type", "reconnected");
 });
 
 Deno.test("reconnect attendee with wrong code", () => {
@@ -371,8 +374,8 @@ Deno.test("reconnect attendee with wrong code", () => {
   });
 
   assertSpyCalls(attendeeSpy, 1);
-  assertMatch(attendeeSpy.calls[0].args[0], /error/);
-  assertMatch(attendeeSpy.calls[0].args[0], /"error":"wrong-code"/);
+  assertAttr(attendeeSpy.calls[0].args[0], "type", "error");
+  assertAttr(attendeeSpy.calls[0].args[0], "error", "wrong-code");
 });
 
 Deno.test("reconnect attendee already connected", () => {
@@ -394,6 +397,6 @@ Deno.test("reconnect attendee already connected", () => {
   });
 
   assertSpyCalls(attendeeSpy, 1);
-  assertMatch(attendeeSpy.calls[0].args[0], /error/);
-  assertMatch(attendeeSpy.calls[0].args[0], /"error":"already-connected"/);
+  assertAttr(attendeeSpy.calls[0].args[0], "type", "error");
+  assertAttr(attendeeSpy.calls[0].args[0], "error", "already-connected");
 });
