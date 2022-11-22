@@ -347,3 +347,29 @@ Deno.test("reconnect attendee", () => {
   assertSpyCalls(attendeeSpy, 1);
   assertMatch(attendeeSpy.calls[0].args[0], /reconnected/);
 });
+
+Deno.test("reconnect attendee with wrong code", () => {
+  const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+  const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
+  const { attendeeId } = establishConnection(
+    hostStub,
+    hostSpy,
+    attendeeStub,
+  );
+
+  // Mock close attendee ws
+  findGameById(attendeeId)!.attendeeWs! = {
+    ...findGameById(attendeeId)!.attendeeWs!,
+    readyState: 3,
+  } as ExtendedWs;
+
+  attendeeSpy.calls.length = 0;
+  handleMessage(attendeeStub, {
+    type: "reconnect",
+    id: attendeeId,
+    "reconnect-code": "500f61d4-6a5c-11ed-a1eb-0242ac120002",
+  });
+
+  assertSpyCalls(attendeeSpy, 1);
+  assertMatch(attendeeSpy.calls[0].args[0], /error/);
+});
