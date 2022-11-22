@@ -1,13 +1,11 @@
+import { assertExists } from "https://deno.land/std@0.160.0/testing/asserts.ts";
 import {
   assertEquals,
   assertMatch,
 } from "https://deno.land/std@0.165.0/testing/asserts.ts";
-import {
-  assertSpyCalls,
-  spy,
-} from "https://deno.land/std@0.165.0/testing/mock.ts";
 import "../server.ts";
-import { assertAttr, uuid_regex } from "./TestHelper.test.ts";
+import { findGameById } from "../serverstate.ts";
+import { uuid_regex } from "./TestHelper.test.ts";
 
 function wsOpenPromise(ws: WebSocket) {
   return new Promise<void>((resolve) => {
@@ -40,4 +38,34 @@ Deno.test("connect host websocket to localhost", async () => {
   // Otherwise, a reconnect timeout is created and the test will fail from leaking async ops.
   ws.send(JSON.stringify({ type: "disconnect" }));
   ws.close();
+});
+
+Deno.test("match two websockets on localhost", async () => {
+  const hostWs = new WebSocket("ws://localhost:3000");
+  const attendeeWs = new WebSocket("ws://localhost:3000");
+  await Promise.all([wsOpenPromise(hostWs), wsOpenPromise(attendeeWs)]);
+
+  hostWs.send(JSON.stringify({ type: "connect-host" }));
+  const hostId = (await wsMessagePromise(hostWs)).id;
+
+  attendeeWs.send(
+    JSON.stringify({ type: "connect-attendee", host: hostId, code: "1234" }),
+  );
+  const clientId = (await wsMessagePromise(hostWs)).clientId;
+
+  hostWs.send(
+    JSON.stringify({ type: "accept-attendee-request", clientId: clientId }),
+  );
+  const hostResponse = await wsMessagePromise(hostWs);
+
+  assertEquals(hostResponse.type, "matched");
+
+  const game = findGameById(hostId);
+  assertExists(game?.hostWs);
+  assertExists(game?.attendeeWs);
+
+  // Send a disconnect message, see above
+  hostWs.send(JSON.stringify({ type: "disconnect" }));
+  hostWs.close();
+  attendeeWs.close();
 });
