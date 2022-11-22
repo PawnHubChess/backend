@@ -1,3 +1,5 @@
+import { delay } from "https://deno.land/std@0.160.0/async/delay.ts";
+import { deadline } from "https://deno.land/std@0.160.0/async/mod.ts";
 import { assertExists } from "https://deno.land/std@0.160.0/testing/asserts.ts";
 import {
   assertEquals,
@@ -24,6 +26,8 @@ function wsMessagePromise(ws: WebSocket) {
 }
 
 Deno.test("connect host websocket to localhost", async () => {
+  const timeout = setTimeout(() => {throw new Error("timeout")}, 5000);
+
   const ws = new WebSocket("ws://localhost:3000");
 
   await wsOpenPromise(ws);
@@ -38,9 +42,12 @@ Deno.test("connect host websocket to localhost", async () => {
   // Otherwise, a reconnect timeout is created and the test will fail from leaking async ops.
   ws.send(JSON.stringify({ type: "disconnect" }));
   ws.close();
+  clearTimeout(timeout);
 });
 
 Deno.test("match two websockets on localhost", async () => {
+  const timeout = setTimeout(() => {throw new Error("timeout")}, 5000);
+
   const hostWs = new WebSocket("ws://localhost:3000");
   const attendeeWs = new WebSocket("ws://localhost:3000");
   await Promise.all([wsOpenPromise(hostWs), wsOpenPromise(attendeeWs)]);
@@ -68,4 +75,5 @@ Deno.test("match two websockets on localhost", async () => {
   hostWs.send(JSON.stringify({ type: "disconnect" }));
   hostWs.close();
   attendeeWs.close();
+  clearTimeout(timeout);
 });
