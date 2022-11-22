@@ -56,6 +56,7 @@ function addAttendeeToGame(
 export function closeGameByHostId(id: string) {
   const index = games.findIndex((game) => game.hostId == id);
   games[index].hostWs.close()
+  games[index].attendeeWs?.close();
   games.splice(index, 1);
 }
 
