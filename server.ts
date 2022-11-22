@@ -83,7 +83,7 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
   if (oldWs.readyState === 1) {
     sendMessage(ws, {
       type: "error",
-      error: "aready-connected",
+      error: "already-connected",
     });
     return;
   }
