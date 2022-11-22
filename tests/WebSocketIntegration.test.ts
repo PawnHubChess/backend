@@ -86,3 +86,27 @@ Deno.test("match two websockets on localhost", async () => {
   attendeeWs.close();
   clearTimeout(timeout);
 });
+
+Deno.test("relay moves on localhost", async () => {
+  const timeout = setTimeout(() => {
+    throw new Error("timeout");
+  }, 5000);
+
+  const hostWs = new WebSocket("ws://localhost:3000");
+  const attendeeWs = new WebSocket("ws://localhost:3000");
+  await Promise.all([wsOpenPromise(hostWs), wsOpenPromise(attendeeWs)]);
+  await matchClients(hostWs, attendeeWs);
+
+  attendeeWs.send(JSON.stringify({ type: "send-move", from: "A2", to: "A4" }));
+  const hostMessage = await wsMessagePromise(hostWs);
+
+  assertEquals(hostMessage.type, "receive-move");
+  assertEquals(hostMessage.from, "A2");
+  assertEquals(hostMessage.to, "A4");
+
+  // Send a disconnect message, see above
+  hostWs.send(JSON.stringify({ type: "disconnect" }));
+  hostWs.close();
+  attendeeWs.close();
+  clearTimeout(timeout);
+});
