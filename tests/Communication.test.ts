@@ -6,13 +6,13 @@ import {
   assertSpyCalls,
   Spy,
   spy,
-stub,
+  stub,
 } from "https://deno.land/std@0.165.0/testing/mock.ts";
 import { Board } from "../Board.ts";
 import { BoardPosition } from "../BoardPosition.ts";
 import { ExtendedWs } from "../ExtendedWs.ts";
 import { handleMessage } from "../server.ts";
-import { findGameById } from "../serverstate.ts";
+import { closeGameByHostId, findGameById } from "../serverstate.ts";
 
 const getStubAndSpy = () => {
   const ws = { readyState: 1 } as unknown as ExtendedWs;
@@ -318,4 +318,32 @@ Deno.test("disconnect attendee", () => {
 
   assertEquals(findGameById(attendeeId), undefined);
   assertEquals(findGameById(hostId)?.board, new Board());
+});
+
+Deno.test("reconnect attendee", () => {
+  const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+  const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
+  const { attendeeId } = establishConnection(
+    hostStub,
+    hostSpy,
+    attendeeStub,
+  );
+
+  // Mock close attendee ws
+  findGameById(attendeeId)!.attendeeWs! = {
+    ...findGameById(attendeeId)!.attendeeWs!,
+    readyState: 3,
+  } as ExtendedWs;
+
+  const reconnectCode =
+    JSON.parse(attendeeSpy.calls[0].args[0])["reconnect-code"];
+  attendeeSpy.calls.length = 0;
+  handleMessage(attendeeStub, {
+    type: "reconnect",
+    id: attendeeId,
+    "reconnect-code": reconnectCode,
+  });
+
+  assertSpyCalls(attendeeSpy, 1);
+  assertMatch(attendeeSpy.calls[0].args[0], /reconnected/);
 });
