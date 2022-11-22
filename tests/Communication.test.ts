@@ -372,6 +372,7 @@ Deno.test("reconnect attendee with wrong code", () => {
 
   assertSpyCalls(attendeeSpy, 1);
   assertMatch(attendeeSpy.calls[0].args[0], /error/);
+  assertMatch(attendeeSpy.calls[0].args[0], /"error":"wrong-code"/);
 });
 
 Deno.test("reconnect attendee already connected", () => {
@@ -394,4 +395,5 @@ Deno.test("reconnect attendee already connected", () => {
 
   assertSpyCalls(attendeeSpy, 1);
   assertMatch(attendeeSpy.calls[0].args[0], /error/);
+  assertMatch(attendeeSpy.calls[0].args[0], /"error":"already-connected"/);
 });
