@@ -9,6 +9,7 @@ import {
 } from "https://deno.land/std@0.165.0/testing/mock.ts";
 import { ExtendedWs } from "../ExtendedWs.ts";
 import { handleMessage } from "../server.ts";
+import { findGameById } from "../serverstate.ts";
 
 const getStubAndSpy = () => {
   const ws = { readyState: 1 } as unknown as ExtendedWs;
@@ -89,6 +90,8 @@ function establishConnection(
     type: "accept-attendee-request",
     clientId: request.clientId,
   });
+
+  return hostId;
 }
 
 Deno.test("connection request sent to host", () => {
@@ -267,4 +270,19 @@ Deno.test("get fen", () => {
     attendeeMoveData.fen,
     "rnbqkbnr/p1pppppp/8/1P6/8/8/1PPPPPPP/RNBQKBNR b",
   );
+});
+
+Deno.test("disconnect host", () => {
+  const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+  const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
+  const hostId = establishConnection(hostStub, hostSpy, attendeeStub);
+
+  attendeeSpy.calls.length = 0;
+
+  handleMessage(hostStub, { type: "disconnect" });
+
+  assertSpyCalls(attendeeSpy, 1);
+  assertMatch(attendeeSpy.calls[0].args[0], /opponent-disconnected/);
+
+  assertEquals(findGameById(hostId), undefined);
 });
