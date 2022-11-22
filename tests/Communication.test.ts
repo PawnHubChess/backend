@@ -289,7 +289,7 @@ Deno.test("disconnect host", () => {
 
 Deno.test("disconnect attendee", () => {
     const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
-    const { stub: attendeeStub } = getStubAndSpy();
+    const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
     const { attendeeId } = establishConnection(hostStub, hostSpy, attendeeStub);
     
     hostSpy.calls.length = 0;
