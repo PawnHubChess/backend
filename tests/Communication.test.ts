@@ -12,10 +12,7 @@ import { BoardPosition } from "../BoardPosition.ts";
 import { ExtendedWs } from "../ExtendedWs.ts";
 import { handleMessage } from "../server.ts";
 import { findGameById } from "../serverstate.ts";
-
-function assertAttr(test: string, attr: string, valueRegex: string) {
-  assertMatch(test, new RegExp(`"${attr}":"${valueRegex}"`));
-}
+import { assertAttr, uuid_regex } from "./TestHelper.test.ts";
 
 const getStubAndSpy = () => {
   const ws = { readyState: 1 } as unknown as ExtendedWs;
@@ -24,8 +21,6 @@ const getStubAndSpy = () => {
   ws.close = spy();
   return { stub: ws, spy: send };
 };
-const uuid_regex =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 Deno.test("host gets correct id and reconnectcode", () => {
   const { stub, spy } = getStubAndSpy();
