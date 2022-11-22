@@ -1,3 +1,4 @@
+import { Deferred } from "https://deno.land/std@0.160.0/async/deferred.ts";
 import { serve } from "./deps.ts";
 import { applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
 import {
@@ -13,6 +14,8 @@ import {
   handleMakeMove,
 } from "./playing.ts";
 import { findGameById, findWsById } from "./serverstate.ts";
+
+const reconnectTimeouts = new Map<string, number>();
 
 // WebSocket stuff
 
@@ -58,13 +61,17 @@ function handleDisconnect(ws: ExtendedWs) {
   const reconCode = ws.reconnectCode!;
   // Only continue if the player was in a game
   if (!findGameById(id)) return;
-  setTimeout(() => {
-    // If reconnectCode is the same after 20 seconds, i.e. no reconnect happened, notify opponent
-    const wsAssociatedWithId = findWsById(id);
-    if (wsAssociatedWithId?.reconnectCode === reconCode) {
-      handleDisconnected(id);
-    }
-  }, 20 * 1000);
+  reconnectTimeouts.set(
+    id,
+    setTimeout(() => {
+      // If reconnectCode is the same after 20 seconds, i.e. no reconnect happened, notify opponent
+      const wsAssociatedWithId = findWsById(id);
+      if (wsAssociatedWithId?.reconnectCode === reconCode) {
+        handleDisconnected(id);
+      }
+      reconnectTimeouts.delete(id);
+    }, 20 * 1000),
+  );
 }
 
 function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
