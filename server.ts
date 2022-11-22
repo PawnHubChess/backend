@@ -107,6 +107,9 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
       type: "reconnected",
       "reconnect-code": ws.reconnectCode,
     });
+
+    clearTimeout(reconnectTimeouts.get(id)!);
+    reconnectTimeouts.delete(id);
   } else {
     sendMessage(ws, {
       type: "error",
