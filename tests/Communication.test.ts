@@ -7,6 +7,8 @@ import {
   Spy,
   spy,
 } from "https://deno.land/std@0.165.0/testing/mock.ts";
+import { Board } from "../Board.ts";
+import { BoardPosition } from "../BoardPosition.ts";
 import { ExtendedWs } from "../ExtendedWs.ts";
 import { handleMessage } from "../server.ts";
 import { findGameById } from "../serverstate.ts";
@@ -275,7 +277,11 @@ Deno.test("get fen", () => {
 Deno.test("disconnect host", () => {
   const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
   const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
-  const { hostId } = establishConnection(hostStub, hostSpy, attendeeStub);
+  const { hostId, attendeeId } = establishConnection(
+    hostStub,
+    hostSpy,
+    attendeeStub,
+  );
 
   attendeeSpy.calls.length = 0;
 
@@ -285,19 +291,29 @@ Deno.test("disconnect host", () => {
   assertMatch(attendeeSpy.calls[0].args[0], /opponent-disconnected/);
 
   assertEquals(findGameById(hostId), undefined);
+  assertEquals(findGameById(attendeeId), undefined);
 });
 
 Deno.test("disconnect attendee", () => {
-    const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
-    const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
-    const { attendeeId } = establishConnection(hostStub, hostSpy, attendeeStub);
-    
-    hostSpy.calls.length = 0;
-    
-    handleMessage(attendeeStub, { type: "disconnect" });
-    
-    assertSpyCalls(hostSpy, 1);
-    assertMatch(hostSpy.calls[0].args[0], /opponent-disconnected/);
-    
-    assertEquals(findGameById(attendeeId), undefined);
+  const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+  const { stub: attendeeStub } = getStubAndSpy();
+  const { hostId, attendeeId } = establishConnection(
+    hostStub,
+    hostSpy,
+    attendeeStub,
+  );
+
+  hostSpy.calls.length = 0;
+
+  findGameById(hostId)?.board.move(
+    new BoardPosition("A2"),
+    new BoardPosition("A4"),
+  );
+  handleMessage(attendeeStub, { type: "disconnect" });
+
+  assertSpyCalls(hostSpy, 1);
+  assertMatch(hostSpy.calls[0].args[0], /opponent-disconnected/);
+
+  assertEquals(findGameById(attendeeId), undefined);
+  assertEquals(findGameById(hostId)?.board, new Board());
 });
