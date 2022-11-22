@@ -14,6 +14,7 @@ import {
   handleMakeMove,
 } from "./playing.ts";
 import { findGameById, findWsById } from "./serverstate.ts";
+import { isPortAvailableSync } from "https://deno.land/x/port@1.0.0/mod.ts";
 
 const reconnectTimeouts = new Map<string, number>();
 
@@ -144,4 +145,6 @@ function reqHandler(req: Request) {
   return response;
 }
 
-serve(reqHandler, { port: 3000 });
+if (isPortAvailableSync({ port: 3000 })) {
+  serve(reqHandler, { port: 3000 });
+}
