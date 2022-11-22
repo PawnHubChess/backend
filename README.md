@@ -2,6 +2,7 @@
 Connecting the [physical chess board](https://github.com/PawnHubChess/client-board) to [our web client](https://github.com/PawnHubChess/client-web).
 
 [![View on - CODE Learning Platform](https://img.shields.io/badge/View_on-CODE_Learning_Platform-1e2022)](https://app.code.berlin/projects/cl7ah7xam785660wl8xssnw4ja)
+[![Deno Tests](https://github.com/PawnHubChess/backend/actions/workflows/deno.yml/badge.svg)](https://github.com/PawnHubChess/backend/actions/workflows/deno.yml)
 
 Read the wiki at https://api.pawn-hub.de or
 connect using a WebSocket to wss://api.pawn-hub.de.
