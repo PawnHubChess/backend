@@ -49,7 +49,9 @@ Deno.test("connect host websocket to localhost", async () => {
 
 async function matchClients(hostWs: WebSocket, attendeeWs: WebSocket) {
   hostWs.send(JSON.stringify({ type: "connect-host" }));
-  const hostId = (await wsMessagePromise(hostWs)).id;
+  const hostConnected = await wsMessagePromise(hostWs);
+  const hostId = hostConnected.id;
+  const hostReconnectCode = hostConnected["reconnect-code"];
 
   attendeeWs.send(
     JSON.stringify({ type: "connect-attendee", host: hostId, code: "1234" }),
@@ -59,8 +61,8 @@ async function matchClients(hostWs: WebSocket, attendeeWs: WebSocket) {
   hostWs.send(
     JSON.stringify({ type: "accept-attendee-request", clientId: clientId }),
   );
-  const hostResponse = await wsMessagePromise(hostWs);
-  return { response: hostResponse, hostId: hostId };
+  const lastResponse = await wsMessagePromise(hostWs);
+  return {lastResponse, hostId, hostReconnectCode };
 }
 
 Deno.test("match two websockets on localhost", async () => {
@@ -72,9 +74,9 @@ Deno.test("match two websockets on localhost", async () => {
   const attendeeWs = new WebSocket("ws://localhost:3000");
   await Promise.all([wsOpenPromise(hostWs), wsOpenPromise(attendeeWs)]);
 
-  const { response, hostId } = await matchClients(hostWs, attendeeWs);
+  const { lastResponse, hostId } = await matchClients(hostWs, attendeeWs);
 
-  assertEquals(response.type, "matched");
+  assertEquals(lastResponse.type, "matched");
 
   const game = findGameById(hostId);
   assertExists(game?.hostWs);
@@ -107,6 +109,42 @@ Deno.test("relay moves on localhost", async () => {
   // Send a disconnect message, see above
   hostWs.send(JSON.stringify({ type: "disconnect" }));
   hostWs.close();
+  attendeeWs.close();
+  clearTimeout(timeout);
+});
+
+Deno.test("reconnect host after match", async () => {
+  const timeout = setTimeout(() => {
+    throw new Error("timeout");
+  }, 5000);
+
+  const hostWs = new WebSocket("ws://localhost:3000");
+  const attendeeWs = new WebSocket("ws://localhost:3000");
+  await Promise.all([wsOpenPromise(hostWs), wsOpenPromise(attendeeWs)]);
+  const { lastResponse, hostId, hostReconnectCode } = await matchClients(
+    hostWs,
+    attendeeWs,
+  );
+
+  hostWs.close();
+
+  const newHostWs = new WebSocket("ws://localhost:3000");
+  await wsOpenPromise(newHostWs);
+
+  newHostWs.send(
+    JSON.stringify({
+      type: "reconnect",
+      id: hostId,
+      "reconnect-code": hostReconnectCode,
+    }),
+  );
+  const reconnectResponse = await wsMessagePromise(newHostWs);
+
+  assertEquals(reconnectResponse.type, "reconnected");
+
+  // Send a disconnect message, see above
+  newHostWs.send(JSON.stringify({ type: "disconnect" }));
+  newHostWs.close();
   attendeeWs.close();
   clearTimeout(timeout);
 });
