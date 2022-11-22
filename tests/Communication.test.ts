@@ -91,7 +91,7 @@ function establishConnection(
     clientId: request.clientId,
   });
 
-  return hostId;
+  return { hostId: hostId, attendeeId: request.clientId };
 }
 
 Deno.test("connection request sent to host", () => {
@@ -275,7 +275,7 @@ Deno.test("get fen", () => {
 Deno.test("disconnect host", () => {
   const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
   const { stub: attendeeStub, spy: attendeeSpy } = getStubAndSpy();
-  const hostId = establishConnection(hostStub, hostSpy, attendeeStub);
+  const { hostId } = establishConnection(hostStub, hostSpy, attendeeStub);
 
   attendeeSpy.calls.length = 0;
 
@@ -285,4 +285,19 @@ Deno.test("disconnect host", () => {
   assertMatch(attendeeSpy.calls[0].args[0], /opponent-disconnected/);
 
   assertEquals(findGameById(hostId), undefined);
+});
+
+Deno.test("disconnect attendee", () => {
+    const { stub: hostStub, spy: hostSpy } = getStubAndSpy();
+    const { stub: attendeeStub } = getStubAndSpy();
+    const { attendeeId } = establishConnection(hostStub, hostSpy, attendeeStub);
+    
+    hostSpy.calls.length = 0;
+    
+    handleMessage(attendeeStub, { type: "disconnect" });
+    
+    assertSpyCalls(hostSpy, 1);
+    assertMatch(hostSpy.calls[0].args[0], /opponent-disconnected/);
+    
+    assertEquals(findGameById(attendeeId), undefined);
 });
