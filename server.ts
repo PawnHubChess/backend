@@ -12,12 +12,7 @@ import {
   handleGetBoard,
   handleMakeMove,
 } from "./playing.ts";
-import {
-  closeGameByHostId,
-  findGameById,
-  findWsById,
-  removeAttendeeFromGame,
-} from "./serverstate.ts";
+import { findGameById, findWsById } from "./serverstate.ts";
 
 // WebSocket stuff
 

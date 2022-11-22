@@ -6,6 +6,7 @@ import {
   assertSpyCalls,
   Spy,
   spy,
+stub,
 } from "https://deno.land/std@0.165.0/testing/mock.ts";
 import { Board } from "../Board.ts";
 import { BoardPosition } from "../BoardPosition.ts";
@@ -17,6 +18,7 @@ const getStubAndSpy = () => {
   const ws = { readyState: 1 } as unknown as ExtendedWs;
   const send = spy();
   ws.send = send;
+  ws.close = spy();
   return { stub: ws, spy: send };
 };
 const uuid_regex =

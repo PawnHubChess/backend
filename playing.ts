@@ -4,7 +4,7 @@ import { sendMessage } from "./server.ts";
 import {
   closeGameByHostId,
   findGameById,
-  removeAttendeeFromGame,
+resetGameByAttendeeId,
 } from "./serverstate.ts";
 
 export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
@@ -60,7 +60,7 @@ export function handleDisconnected(id: string) {
     "type": "opponent-disconnected",
   });
   if (game.isHost(id)) closeGameByHostId(id);
-  else removeAttendeeFromGame(id);
+  else resetGameByAttendeeId(id);
 }
 
 function checkGameWon() {

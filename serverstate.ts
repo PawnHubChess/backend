@@ -57,11 +57,11 @@ export function closeGameByHostId(id: string) {
   games.splice(games.findIndex((game) => game.hostId == id), 1);
 }
 
-export function removeAttendeeFromGame(id: string) {
-  const game = findGameByAttendeeId(id);
-  if (!game) return;
-  game.attendeeId = undefined;
-  game.attendeeWs = undefined;
+export function resetGameByAttendeeId(id: string) {
+  const index = games.findIndex((game) => game.attendeeId === id);
+  if (index === -1) return;
+  games[index].attendeeWs?.close();
+  games[index] = new Game(games[index].hostId, games[index].hostWs);
 }
 
 const pendingConnectRequests: Array<ConnectRequest> = [];
