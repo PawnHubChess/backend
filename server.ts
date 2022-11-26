@@ -1,4 +1,3 @@
-import { Deferred } from "https://deno.land/std@0.160.0/async/deferred.ts";
 import { serve, isPortAvailableSync, parse } from "./deps.ts";
 import { applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
 import {

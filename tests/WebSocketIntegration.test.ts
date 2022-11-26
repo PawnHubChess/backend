@@ -1,5 +1,3 @@
-import { delay } from "https://deno.land/std@0.160.0/async/delay.ts";
-import { deadline } from "https://deno.land/std@0.160.0/async/mod.ts";
 import { assertExists } from "https://deno.land/std@0.160.0/testing/asserts.ts";
 import {
   assertEquals,
