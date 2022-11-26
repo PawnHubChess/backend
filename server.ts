@@ -1,5 +1,5 @@
 import { Deferred } from "https://deno.land/std@0.160.0/async/deferred.ts";
-import { serve } from "./deps.ts";
+import { serve, isPortAvailableSync, parse } from "./deps.ts";
 import { applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
 import {
   handleAcceptAttendeeRequest,
@@ -14,8 +14,6 @@ import {
   handleMakeMove,
 } from "./playing.ts";
 import { findGameById, findWsById } from "./serverstate.ts";
-import { isPortAvailableSync } from "https://deno.land/x/port@1.0.0/mod.ts";
-import { parse } from "https://deno.land/std@0.119.0/flags/mod.ts";
 
 // CLI options
 export const flags = parse(Deno.args, {
