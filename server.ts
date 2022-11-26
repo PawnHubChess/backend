@@ -15,6 +15,13 @@ import {
 } from "./playing.ts";
 import { findGameById, findWsById } from "./serverstate.ts";
 import { isPortAvailableSync } from "https://deno.land/x/port@1.0.0/mod.ts";
+import { parse } from "https://deno.land/std@0.119.0/flags/mod.ts";
+
+// CLI options
+export const flags = parse(Deno.args, {
+  boolean: ["debug"],
+});
+if (flags.debug) console.warn("Running in debug mode");
 
 const reconnectTimeouts = new Map<string, number>();
 

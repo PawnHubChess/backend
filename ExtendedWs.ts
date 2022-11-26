@@ -1,4 +1,5 @@
 import { uuid } from "./deps.ts";
+import { flags } from "./server.ts";
 import { gameExists } from "./serverstate.ts";
 
 export class ExtendedWs extends WebSocket {
@@ -17,6 +18,10 @@ export function applyHostId(ws: ExtendedWs) {
     id = Math.floor(Math.random() * 998 + 1)
       .toString().padStart(4, "0");
   } while (gameExists(id));
+
+  // Override host id to 0000 if in debug mode
+  if (flags.debug) id = "0000";
+
   ws.id = id;
 }
 
