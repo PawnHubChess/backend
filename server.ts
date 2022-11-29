@@ -13,6 +13,7 @@ import {
   handleMakeMove,
 } from "./playing.ts";
 import { findGameById, findWsById } from "./serverstate.ts";
+import { sendMessageToId } from "./WebSocketInterface.ts";
 
 // CLI options
 export const flags = parse(Deno.args, {
@@ -93,7 +94,7 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
   } else return;
 
   if (oldWs.readyState === 1) {
-    sendMessage(ws, {
+    sendMessageToId(ws.id!, {
       type: "error",
       error: "already-connected",
     });
@@ -108,7 +109,7 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
     if (isHost) game.hostWs = ws;
     else game.attendeeWs = ws;
 
-    sendMessage(ws, {
+    sendMessageToId(ws.id, {
       type: "reconnected",
       "reconnect-code": ws.reconnectCode,
     });
@@ -116,18 +117,12 @@ function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
     clearTimeout(reconnectTimeouts.get(id)!);
     reconnectTimeouts.delete(id);
   } else {
-    sendMessage(ws, {
+    sendMessageToId(ws.id!, {
       type: "error",
       error: "wrong-code",
     });
     return;
   }
-}
-
-// deno-lint-ignore no-explicit-any
-export function sendMessage(ws: ExtendedWs | undefined, msg: any) {
-  if (!ws || ws.readyState !== 1) return;
-  ws.send(JSON.stringify(msg));
 }
 
 function reqHandler(req: Request) {

@@ -4,7 +4,7 @@ import {
   applyReconnectCode,
   ExtendedWs,
 } from "./ExtendedWs.ts";
-import { sendMessage } from "./server.ts";
+import { createQueue, subscribe } from "./MessageBrokerInterface.ts";
 import {
   acceptConnectRequest,
   attendeeHostMatch,
@@ -16,13 +16,14 @@ import {
   findGameByHostid,
   gameExists,
 } from "./serverstate.ts";
+import { sendMessageToId } from "./WebSocketInterface.ts";
 
 export function handleConnected(ws: ExtendedWs, ev: Event) {}
 
 export function handleConnectHost(ws: ExtendedWs) {
   if (ws.id !== undefined && gameExists(ws.id!)) {
     // Error: Host is already connected and in a game
-    sendMessage(ws, {
+    sendMessageToId(ws.id!, {
       type: "error",
       error: "already-connected",
       message: "Host is already connected and in a game",
@@ -35,7 +36,7 @@ export function handleConnectHost(ws: ExtendedWs) {
   applyReconnectCode(ws);
   createHost(ws.id!, ws);
 
-  sendMessage(ws, {
+  sendMessageToId(ws.id!, {
     type: "connected-id",
     id: ws.id,
     "reconnect-code": ws.reconnectCode,
@@ -49,7 +50,7 @@ export function handleConnectAttendeeRequest(
 ) {
   if (ws.id !== undefined) {
     if (findConnectRequestByAttendeeId(ws.id!) !== undefined) {
-      sendMessage(ws, {
+      sendMessageToId(ws.id!, {
         type: "request-declined",
         details: "duplicate",
         message: "Connection request already pending",
@@ -57,7 +58,7 @@ export function handleConnectAttendeeRequest(
       return;
     }
     if (findGameByAttendeeId(ws.id) !== undefined) {
-      sendMessage(ws, {
+      sendMessageToId(ws.id!, {
         type: "request-declined",
         details: "ingame",
         message: "Already in a game",
@@ -67,7 +68,7 @@ export function handleConnectAttendeeRequest(
   }
 
   if (!findGameByHostid(host)?.hostWs) {
-    sendMessage(ws, {
+    sendMessageToId(ws.id!, {
       type: "request-declined",
       details: "nonexistent",
       message: "Host does not exist",
@@ -79,7 +80,7 @@ export function handleConnectAttendeeRequest(
   applyReconnectCode(ws);
   createConnectRequest(ws.id!, host, ws);
 
-  sendMessage(findGameByHostid(host)?.hostWs!, {
+  sendMessageToId(host, {
     type: "verify-attendee-request",
     clientId: ws.id!,
     code: code,
@@ -91,7 +92,7 @@ export function handleAcceptAttendeeRequest(
   clientId: string,
 ) {
   if (!attendeeHostMatch(clientId, ws.id!)) {
-    sendMessage(ws, {
+    sendMessageToId(ws.id!, {
       type: "error",
       details: "connect-response-client-error",
       message: "Client did not request connection",
@@ -103,7 +104,7 @@ export function handleAcceptAttendeeRequest(
     let game = acceptConnectRequest(clientId);
 
     if (!game) {
-      sendMessage(ws, {
+      sendMessageToId(ws.id!, {
         type: "error",
         details: "connect-response-request-error",
         message: "Client did not request connection",
@@ -111,7 +112,7 @@ export function handleAcceptAttendeeRequest(
     }
     game = game!;
 
-    sendMessage(game.attendeeWs, {
+    sendMessageToId(game.attendeeWs!.id!, {
       type: "connected-id",
       id: game.attendeeId,
       "reconnect-code": game.attendeeWs?.reconnectCode!,
@@ -127,7 +128,7 @@ export function handleDeclineAttendeeRequest(clientId: string) {
   const clientWs = declineAttendeeRequest(clientId);
   if (!clientWs) return;
 
-  sendMessage(clientWs, {
+  sendMessageToId(clientWs.id!, {
     type: "request-declined",
     details: "code",
     message: "Host did not approve code",

@@ -1,11 +1,11 @@
 import { BoardPosition } from "./BoardPosition.ts";
 import { ExtendedWs } from "./ExtendedWs.ts";
-import { sendMessage } from "./server.ts";
 import {
   closeGameByHostId,
   findGameById,
 resetGameByAttendeeId,
 } from "./serverstate.ts";
+import { sendMessageToId } from "./WebSocketInterface.ts";
 
 export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
   const game = findGameById(ws.id!)!;
@@ -13,7 +13,7 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
   const toPos = new BoardPosition(to);
 
   if (!game.validateMove(fromPos, toPos)) {
-    sendMessage(ws, {
+    sendMessageToId(ws.id!, {
       type: "reject-move",
       from: from,
       to: to,
@@ -22,7 +22,7 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
     return;
   }
   if (!game.validateCorrectPlayerMoved(fromPos, ws.id!)) {
-    sendMessage(ws, {
+    sendMessageToId(ws.id!, {
       type: "reject-move",
       from: from,
       to: to,
@@ -34,7 +34,7 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
 
   game.makeMove(ws.id!, fromPos, toPos);
 
-  sendMessage(ws, {
+  sendMessageToId(ws.id!, {
     type: "accept-move",
     from: from,
     to: to,
@@ -47,7 +47,7 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
 export function handleGetBoard(ws: ExtendedWs) {
   const game = findGameById(ws.id!)!;
   // todo handle not in game
-  sendMessage(ws, {
+  sendMessageToId(ws.id!, {
     type: "board",
     fen: game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
   });

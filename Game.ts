@@ -1,7 +1,7 @@
 import { Board } from "./Board.ts";
 import { BoardPosition } from "./BoardPosition.ts";
 import { ExtendedWs } from "./ExtendedWs.ts";
-import { sendMessage } from "./server.ts";
+import { sendMessageToId } from "./WebSocketInterface.ts";
 
 export class Game {
   hostId: string;
@@ -22,8 +22,8 @@ export class Game {
       "type": "matched",
       "fen": this.board.toFEN() + (this.nextMoveWhite ? " w" : " b"),
     };
-    sendMessage(this.hostWs, msg);
-    sendMessage(this.attendeeWs!, msg);
+    sendMessageToId(this.hostId, msg);
+    sendMessageToId(this.attendeeId!, msg);
   }
 
   validateCorrectPlayerMoved(from: BoardPosition, id: string): boolean {
@@ -59,7 +59,7 @@ export class Game {
       // ws queue messages if opponent ws is not ready. Will be implemented when switching to cloud native
       return;
     }
-    sendMessage(otherPlayerWs, data);
+    sendMessageToId(otherPlayerWs.id!, data);
   }
 
   isHost(id: string) {
