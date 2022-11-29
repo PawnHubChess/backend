@@ -2,6 +2,7 @@ import { getChannel } from "./MessageBrokerChannel.ts";
 
 export const QUEUES = {
   reconnect: "reconnect",
+  reconnectComplete: "reconnectComplete",
 };
 
 async function createDefaultQueues() {

@@ -2,8 +2,12 @@ import { generateId } from "./Utils.ts";
 
 const clients = new Map<string, WebSocket>();
 
-export async function connect(ws: WebSocket, isHost: boolean): Promise<string> {
-  const id = await generateId(ws, isHost);
+export async function connect(
+  ws: WebSocket,
+  isHost?: boolean,
+  id?: string,
+): Promise<string> {
+  id = id || await generateId(ws, isHost ?? false);
   clients.set(id, ws);
   return id;
 }

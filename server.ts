@@ -3,7 +3,6 @@ import { applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
 import {
   handleAcceptAttendeeRequest,
   handleConnectAttendeeRequest,
-  handleConnected,
   handleConnectHost,
   handleDeclineAttendeeRequest,
 } from "./matchmaking.ts";
@@ -13,8 +12,10 @@ import {
   handleMakeMove,
 } from "./playing.ts";
 import {
-  allowReconnectForId,
+  completeReconnectTransation,
   generateReconnectCode,
+  startReconnectTransaction,
+  verifyReconnectCode,
 } from "./ReconnectHandler.ts";
 import { findGameById, findWsById } from "./serverstate.ts";
 import { connect, getId, sendMessageToId } from "./WebSocketInterface.ts";
@@ -45,9 +46,6 @@ export function handleMessage(ws: ExtendedWs, data: any) {
     case "decline-attendee-request":
       handleDeclineAttendeeRequest(data.clientId);
       break;
-    case "reconnect":
-      handleReconnect(ws, data.id, data["reconnect-code"]);
-      break;
     case "send-move":
       handleMakeMove(ws, data.from, data.to);
       break;
@@ -69,52 +67,7 @@ function handleError(e: Event | ErrorEvent) {
 function handleDisconnect(ws: ExtendedWs) {
   const id = getId(ws);
   if (!id) return;
-  allowReconnectForId(id);
-}
-
-function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
-  const game = findGameById(id);
-  let oldWs: ExtendedWs | undefined;
-  let isHost: boolean | undefined;
-
-  if (game?.hostWs.id === id) {
-    oldWs = game.hostWs;
-    isHost = true;
-  } else if (game?.attendeeWs?.id === id) {
-    oldWs = game.attendeeWs;
-    isHost = false;
-  } else return;
-
-  if (oldWs.readyState === 1) {
-    sendMessageToId(ws.id!, {
-      type: "error",
-      error: "already-connected",
-    });
-    return;
-  }
-
-  // todo old ip should match new ip
-  if (oldWs.reconnectCode === reconnectCode) {
-    ws.id = id;
-    applyReconnectCode(ws);
-
-    if (isHost) game.hostWs = ws;
-    else game.attendeeWs = ws;
-
-    sendMessageToId(ws.id, {
-      type: "reconnected",
-      "reconnect-code": ws.reconnectCode,
-    });
-
-    clearTimeout(reconnectTimeouts.get(id)!);
-    reconnectTimeouts.delete(id);
-  } else {
-    sendMessageToId(ws.id!, {
-      type: "error",
-      error: "wrong-code",
-    });
-    return;
-  }
+  startReconnectTransaction(id);
 }
 
 function reqHandler(req: Request) {
@@ -127,10 +80,21 @@ function reqHandler(req: Request) {
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
   const ews = ws as ExtendedWs;
 
+  const url = new URL(req.url);
 
-  if (req.url.endsWith("/host")) ws.onopen = () => handleHostConnected(ws);
-  else ws.onopen = () => handleConnected(ws);
-  
+  if (url.pathname === "/host") {
+    ws.onopen = () => handleHostConnected(ws);
+  } else if (url.pathname === "/reconnect") {
+    ws.onopen = () =>
+      handleReconnect(
+        ws,
+        url.searchParams.get("id")!,
+        url.searchParams.get("reconnectCode")!,
+      );
+  } else {
+    ws.onopen = () => handleConnected(ws);
+  }
+
   ews.onmessage = (m) => handleMessage(ews, JSON.parse(m.data));
   ews.onclose = () => handleDisconnect(ews);
   ews.onerror = (e) => handleError(e);
@@ -157,6 +121,27 @@ async function handleHostConnected(ws: WebSocket) {
     id: id,
     reconnectCode: reconnectCode,
   });
+}
+
+async function handleReconnect(
+  ws: WebSocket,
+  id: string,
+  reconnectCode: string,
+) {
+  if (verifyReconnectCode(id, reconnectCode)) {
+    const newCode = await completeReconnectTransation(id);
+    connect(ws, false, id);
+    sendMessageToId(id, {
+      type: "reconnected",
+      reconnectCode: newCode,
+    });
+  } else {
+    ws.send(JSON.stringify({
+      type: "error",
+      error: "wrong-code",
+    }));
+    ws.close();
+  }
 }
 
 if (isPortAvailableSync({ port: 3000 })) {

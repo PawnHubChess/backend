@@ -18,22 +18,49 @@ export async function generateReconnectCode(id: string): Promise<string> {
   return code;
 }
 
-export async function allowReconnectForId(id: string) {
+export function verifyReconnectCode(id: string, code: string): boolean {
+  console.log(pendingReconnectsSynced);
+  return pendingReconnectsSynced.get(id) === code;
+}
+
+export async function startReconnectTransaction(id: string) {
   await publish(QUEUES.reconnect, {
     id: id,
     code: reconnectCodesLocal.get(id),
   });
 }
 
+export async function completeReconnectTransation(id: string): Promise<string> {
+  await publish(QUEUES.reconnectComplete, { id: id });
+  // Regenerate reconnect code
+  const newCode = await generateReconnectCode(id);
+  return newCode;
+}
+
 async function subscribeToReconnects() {
   await subscribe(QUEUES.reconnect, (message: any) => {
+    console.log("got message");
+    console.log(message);
+
     pendingReconnectsSynced.set(message.id, message.code);
     // Timeout reconnects after 20 seconds
     setTimeout(() => {
       if (pendingReconnectsSynced.get(message.id) === message.code) {
         pendingReconnectsSynced.delete(message.id);
+        console.log("delete after timeout");
       }
-    }, 20_000);
+    }, 60_000);
+
+    console.log(pendingReconnectsSynced);	
   });
 }
 subscribeToReconnects();
+
+async function subscribeToReconnectComplete() {
+  await subscribe(QUEUES.reconnectComplete, (message: any) => {
+    pendingReconnectsSynced.delete(message.id);
+    console.log("delete after complete");
+    console.log(message)
+  });
+}
+subscribeToReconnectComplete();
