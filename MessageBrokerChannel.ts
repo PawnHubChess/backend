@@ -1,3 +1,4 @@
+import "https://deno.land/x/dotenv@v3.2.0/load.ts";
 import { AmqpChannel, connect } from "https://deno.land/x/amqp@v0.21.0/mod.ts";
 
 let channel: AmqpChannel | undefined = undefined;
