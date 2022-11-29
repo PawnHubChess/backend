@@ -7,13 +7,18 @@ export async function subscribe(
   const channel = await getChannel();
 
   await channel.consume(
-    { queue: queue },
+    { queue: queue, consumerTag: queue },
     async (args, _, data) => {
       const json = JSON.parse(new TextDecoder().decode(data));
       callback(json);
       await channel.ack({ deliveryTag: args.deliveryTag });
     },
   );
+}
+
+export async function unsubscribe(queue: string): Promise<void> {
+  const channel = await getChannel();
+  await channel.cancel({ consumerTag: queue });
 }
 
 export async function publish(queue: string, message: any) {
