@@ -1,23 +1,24 @@
-import { connect } from "https://deno.land/x/amqp@v0.21.0/mod.ts";
-import "https://deno.land/x/dotenv@v3.2.0/load.ts";
+import {
+  createQueue,
+  destroyQueue,
+  publish,
+  subscribe,
+} from "./MessageBrokerInterface.ts";
 
-const connection = await connect(Deno.env.get("CLOUDAMQP_URL")!);
-const channel = await connection.openChannel();
+console.log("Starting");
 
-const exchangeName = "host_client";
-await channel.declareQueue({ queue: exchangeName });
+const exchangeName = "host_client-1";
 
-await channel.consume({ queue: exchangeName }, async (args, props, data) => {
-  console.log(JSON.stringify(args));
-  console.log(JSON.stringify(props));
-  console.log(new TextDecoder().decode(data));
-  await channel.ack({ deliveryTag: args.deliveryTag });
+await createQueue(exchangeName);
+
+await subscribe(exchangeName, (message: any) => {
+  console.log(message);
 });
 
-await channel.publish(
-  { routingKey: exchangeName },
-  { contentType: "application/json" },
-  new TextEncoder().encode(JSON.stringify({ foo: "bar" })),
-);
+await publish(exchangeName, { "receive-move": "abcdef" });
 
-console.log("Done");
+setTimeout(async () => {
+    await destroyQueue(exchangeName);
+    console.log("Destroyed queue after 5 seconds");
+    Deno.exit()
+}, 5000);
