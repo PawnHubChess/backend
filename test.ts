@@ -1,15 +1,13 @@
 import { connect } from "https://deno.land/x/redis/mod.ts";
 
-const redis = await connect({
-  hostname: "redis-12583.c135.eu-central-1-1.ec2.cloud.redislabs.com",
-  port: "12583",
-  username: "default",
+const subscriber = await connect({
+  hostname: "redis-15929.c135.eu-central-1-1.ec2.cloud.redislabs.com",
+  port: "15929",
+  username: "backend",
   password: "",
 });
 
-console.log("Connected")
-
-const sub = await redis.subscribe("channel");
+const sub = await subscriber.subscribe("channel");
 (async function () {
   for await (const { channel, message } of sub.receive()) {
     console.log(channel, message);
@@ -17,8 +15,13 @@ const sub = await redis.subscribe("channel");
   }
 })();
 
-console.log("Subscribed")
 
-console.log(await redis.publish("channel", "Hello World") + " messages published");
 
-console.log("Published")
+const publisher = await connect({
+  hostname: "redis-15929.c135.eu-central-1-1.ec2.cloud.redislabs.com",
+  port: "15929",
+  username: "backend",
+  password: "",
+});
+
+console.log(await publisher.publish("channel", "nice"));
