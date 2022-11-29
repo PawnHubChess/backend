@@ -1,5 +1,5 @@
 import "https://deno.land/x/dotenv@v3.2.0/load.ts";
-import { AmqpChannel, connect } from "https://deno.land/x/amqp@v0.21.0/mod.ts";
+import { AmqpChannel, AmqpConnect } from "./deps.ts";
 
 let channel: AmqpChannel | undefined = undefined;
 let pendingPromise: Promise<AmqpChannel> | undefined = undefined;
@@ -17,7 +17,7 @@ function openChannel(): Promise<AmqpChannel> {
   return new Promise<AmqpChannel>(
     async (resolve, reject) => {
       try {
-        const connection = await connect(Deno.env.get("CLOUDAMQP_URL")!);
+        const connection = await AmqpConnect(Deno.env.get("CLOUDAMQP_URL")!);
         channel = await connection.openChannel();
         resolve(channel);
       } catch (error) {
