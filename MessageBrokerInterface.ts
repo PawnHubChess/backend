@@ -1,5 +1,16 @@
 import { getChannel } from "./MessageBrokerChannel.ts";
 
+export const QUEUES = {
+  reconnect: "reconnect",
+};
+
+async function createDefaultQueues() {
+    for (const queue of Object.entries(QUEUES)) {
+      await createQueue(queue[1]);
+    }
+}
+createDefaultQueues();
+
 export async function subscribe(
   queue: string,
   callback: (message: any) => void,

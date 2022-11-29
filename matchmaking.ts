@@ -16,9 +16,7 @@ import {
   findGameByHostid,
   gameExists,
 } from "./serverstate.ts";
-import { sendMessageToId } from "./WebSocketInterface.ts";
-
-export function handleConnected(ws: ExtendedWs, ev: Event) {}
+import { connect, sendMessageToId } from "./WebSocketInterface.ts";
 
 export function handleConnectHost(ws: ExtendedWs) {
   if (ws.id !== undefined && gameExists(ws.id!)) {

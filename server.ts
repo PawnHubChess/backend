@@ -1,4 +1,4 @@
-import { serve, isPortAvailableSync, parse } from "./deps.ts";
+import { isPortAvailableSync, parse, serve } from "./deps.ts";
 import { applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
 import {
   handleAcceptAttendeeRequest,
@@ -12,8 +12,12 @@ import {
   handleGetBoard,
   handleMakeMove,
 } from "./playing.ts";
+import {
+  allowReconnectForId,
+  generateReconnectCode,
+} from "./ReconnectHandler.ts";
 import { findGameById, findWsById } from "./serverstate.ts";
-import { sendMessageToId } from "./WebSocketInterface.ts";
+import { connect, getId, sendMessageToId } from "./WebSocketInterface.ts";
 
 // CLI options
 export const flags = parse(Deno.args, {
@@ -63,21 +67,9 @@ function handleError(e: Event | ErrorEvent) {
 }
 
 function handleDisconnect(ws: ExtendedWs) {
-  const id = ws.id!;
-  const reconCode = ws.reconnectCode!;
-  // Only continue if the player was in a game
-  if (!findGameById(id)) return;
-  reconnectTimeouts.set(
-    id,
-    setTimeout(() => {
-      // If reconnectCode is the same after 20 seconds, i.e. no reconnect happened, notify opponent
-      const wsAssociatedWithId = findWsById(id);
-      if (wsAssociatedWithId?.reconnectCode === reconCode) {
-        handleDisconnected(id);
-      }
-      reconnectTimeouts.delete(id);
-    }, 20 * 1000),
-  );
+  const id = getId(ws);
+  if (!id) return;
+  allowReconnectForId(id);
 }
 
 function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
@@ -134,14 +126,37 @@ function reqHandler(req: Request) {
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
   const ews = ws as ExtendedWs;
-  const ipaddress = req.headers.get("x-forwarded-for") ||
-    req.headers.get("host");
 
-  ews.onopen = (ev) => handleConnected(ews, ev);
+
+  if (req.url.endsWith("/host")) ws.onopen = () => handleHostConnected(ws);
+  else ws.onopen = () => handleConnected(ws);
+  
   ews.onmessage = (m) => handleMessage(ews, JSON.parse(m.data));
   ews.onclose = () => handleDisconnect(ews);
   ews.onerror = (e) => handleError(e);
   return response;
+}
+
+async function handleConnected(ws: WebSocket) {
+  const id = await connect(ws, false);
+  const reconnectCode = await generateReconnectCode(id);
+  sendMessageToId(id, {
+    type: "connected",
+    host: false,
+    id: id,
+    reconnectCode: reconnectCode,
+  });
+}
+
+async function handleHostConnected(ws: WebSocket) {
+  const id = await connect(ws, true);
+  const reconnectCode = await generateReconnectCode(id);
+  sendMessageToId(id, {
+    type: "connected",
+    host: true,
+    id: id,
+    reconnectCode: reconnectCode,
+  });
 }
 
 if (isPortAvailableSync({ port: 3000 })) {
