@@ -19,7 +19,6 @@ export async function generateReconnectCode(id: string): Promise<string> {
 }
 
 export function verifyReconnectCode(id: string, code: string): boolean {
-  console.log(pendingReconnectsSynced);
   return pendingReconnectsSynced.get(id) === code;
 }
 
@@ -39,9 +38,6 @@ export async function completeReconnectTransation(id: string): Promise<string> {
 
 async function subscribeToReconnects() {
   await subscribe(QUEUES.reconnect, (message: any) => {
-    console.log("got message");
-    console.log(message);
-
     pendingReconnectsSynced.set(message.id, message.code);
     // Timeout reconnects after 20 seconds
     setTimeout(() => {
@@ -59,8 +55,6 @@ subscribeToReconnects();
 async function subscribeToReconnectComplete() {
   await subscribe(QUEUES.reconnectComplete, (message: any) => {
     pendingReconnectsSynced.delete(message.id);
-    console.log("delete after complete");
-    console.log(message)
   });
 }
 subscribeToReconnectComplete();

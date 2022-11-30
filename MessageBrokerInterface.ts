@@ -6,9 +6,9 @@ export const QUEUES = {
 };
 
 async function createDefaultQueues() {
-    for (const queue of Object.entries(QUEUES)) {
-      await createQueue(queue[1]);
-    }
+  for (const queue of Object.entries(QUEUES)) {
+    await createQueue(queue[1]);
+  }
 }
 createDefaultQueues();
 
@@ -21,6 +21,7 @@ export async function subscribe(
   await channel.consume(
     { queue: queue, consumerTag: queue },
     async (args, _, data) => {
+      if (args.consumerTag !== queue) return; // todo there must be a better way for this
       const json = JSON.parse(new TextDecoder().decode(data));
       callback(json);
       await channel.ack({ deliveryTag: args.deliveryTag });
