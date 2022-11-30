@@ -2,11 +2,12 @@ import { isPortAvailableSync, parse, serve } from "./deps.ts";
 import { applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
 import {
   handleAcceptAttendeeRequest,
-  handleConnectAttendeeRequest,
-  handleConnectHost,
   handleDeclineAttendeeRequest,
 } from "./matchmaking.ts";
-import { createAndSubscribeToIdQueue } from "./MessageBrokerInterface.ts";
+import {
+  createAndSubscribeToIdQueue,
+  publish,
+} from "./MessageBrokerInterface.ts";
 import {
   handleDisconnected,
   handleGetBoard,
@@ -19,7 +20,12 @@ import {
   verifyReconnectCode,
 } from "./ReconnectHandler.ts";
 import { findGameById, findWsById } from "./serverstate.ts";
-import { connect, getId, sendMessageToId } from "./WebSocketInterface.ts";
+import {
+  connect,
+  getId,
+  sendMessageToId,
+  sendRequestMessage,
+} from "./WebSocketInterface.ts";
 
 // CLI options
 export const flags = parse(Deno.args, {
@@ -27,17 +33,12 @@ export const flags = parse(Deno.args, {
 });
 if (flags.debug) console.warn("Running in debug mode");
 
-const reconnectTimeouts = new Map<string, number>();
-
 // WebSocket stuff
 
 // Rewire is not yet available for Deno; export for testing
 // deno-lint-ignore no-explicit-any
 export function handleMessage(ws: ExtendedWs, data: any) {
   switch (data.type) {
-    case "connect-attendee":
-      handleConnectAttendeeRequest(ws, data.host, data.code);
-      break;
     case "accept-attendee-request":
       handleAcceptAttendeeRequest(ws, data.clientId);
       break;
@@ -59,7 +60,11 @@ export function handleMessage(ws: ExtendedWs, data: any) {
 }
 
 export function handleInstanceMessage(id: string, message: any) {
-  // todo
+  switch (message.type) {
+    case "connect-request":
+      handleReceiveRequest(id, message);
+      break;
+  }
 }
 
 function handleError(e: Event | ErrorEvent) {
@@ -88,7 +93,7 @@ function reqHandler(req: Request) {
   return response;
 }
 
-function handleConnected(ws: WebSocket, url: URL) {
+async function handleConnected(ws: WebSocket, url: URL) {
   if (url.pathname === "/reconnect") {
     handleReconnect(
       ws,
@@ -97,14 +102,23 @@ function handleConnected(ws: WebSocket, url: URL) {
     );
     return;
   } else {
-    handleNewlyConnected(ws, url.pathname === "/host");
+    const isHost = url.pathname === "/host";
+    const id = await handleNewlyConnected(ws, isHost);
+
+    if (isHost) {
+      handleSendRequest(
+        id,
+        url.searchParams.get("id")!,
+        url.searchParams.get("code")!,
+      );
+    }
   }
 }
 
 async function handleNewlyConnected(ws: WebSocket, isHost: boolean) {
   const id = await connect(ws, isHost);
   const reconnectCode = await generateReconnectCode(id);
-  
+
   sendMessageToId(id, {
     type: "connected",
     host: isHost,
@@ -116,6 +130,8 @@ async function handleNewlyConnected(ws: WebSocket, isHost: boolean) {
     id,
     (message) => handleInstanceMessage(id, message),
   );
+
+  return id;
 }
 
 async function handleReconnect(
@@ -137,6 +153,33 @@ async function handleReconnect(
     }));
     ws.close();
   }
+}
+
+async function handleSendRequest(
+  ownId: string,
+  recipientId: string,
+  code: string,
+) {
+  try {
+    await publish(recipientId, {
+      type: "connect-request",
+      id: ownId,
+      code: code,
+    });
+  } catch (e) {
+    // Error is most probably caused by queue not existing
+    sendMessageToId(ownId, {
+      type: "request-declined",
+      details: "nonexistent",
+      message: "Host does not exist",
+    });
+  }
+}
+
+function handleReceiveRequest(ownId: string, message: any) {
+  const senderId = message.id;
+  const code = message.code;
+  sendRequestMessage(ownId, senderId, code);
 }
 
 if (isPortAvailableSync({ port: 3000 })) {

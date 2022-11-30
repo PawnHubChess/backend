@@ -29,3 +29,11 @@ export function sendMessageToId(id: string, message: any) {
   if (!ws || ws.readyState !== 1) return;
   ws.send(JSON.stringify(message));
 }
+
+export function sendRequestMessage(ownId: string, clientId: string, code: string) {
+  sendMessageToId(ownId, {
+    type: "verify-attendee-request",
+    clientId: clientId,
+    code: code,
+  })
+}
