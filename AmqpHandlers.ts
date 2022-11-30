@@ -1,7 +1,13 @@
 import { queueExists } from "./AmqpInterface.ts";
 import { amqp, wsHandlers, wsi } from "./deps.ts";
 import { Game } from "./Game.ts";
-import { createGame, getGameById, selfInGame } from "./serverstate.ts";
+import {
+  connectRequestMatches,
+  createGame,
+  getGameById,
+  removeConnectRequest,
+  selfInGame,
+} from "./serverstate.ts";
 
 export function handleMessage(id: string, message: any) {
   switch (message.type) {
@@ -10,6 +16,9 @@ export function handleMessage(id: string, message: any) {
       break;
     case "connect-response":
       handleReceiveConnectResponse(id, message);
+      break;
+    case "match-confirmed":
+      handleReceiveMatchConfirmedMessage(id, message);
       break;
     case "game-closed":
       handleReceiveGameClosed(id);
@@ -61,6 +70,12 @@ function handleReceiveConnectResponse(ownId: string, message: any) {
   const opponentId = message.id;
   const accepted = message.accept;
 
+  if (!connectRequestMatches(ownId, opponentId)) {
+    console.warn("Received connect response from unexpected client");
+    return;
+  }
+  removeConnectRequest(ownId);
+
   if (!accepted) {
     wsi.sendMessageToId(ownId, {
       type: "request-declined",
@@ -71,6 +86,20 @@ function handleReceiveConnectResponse(ownId: string, message: any) {
     return;
   }
 
+  const game = createGame(ownId, opponentId);
+  wsi.sendMatchedMessage(ownId, game);
+  handleSendMatchConfirmedMessage(ownId, opponentId);
+}
+
+function handleSendMatchConfirmedMessage(ownId: string, opponentId: string) {
+  amqp.publish(opponentId, {
+    type: "match-confirmed",
+    id: ownId,
+  });
+}
+
+function handleReceiveMatchConfirmedMessage(ownId: string, message: any) {
+  const opponentId = message.id;
   const game = createGame(ownId, opponentId);
   wsi.sendMatchedMessage(ownId, game);
 }
@@ -85,5 +114,5 @@ export function handleGameClosedMessage(ownId: string) {
 }
 
 function handleReceiveGameClosed(id: string) {
-    wsHandlers.handleSendGameClosedMessage(id);
+  wsHandlers.handleSendGameClosedMessage(id);
 }

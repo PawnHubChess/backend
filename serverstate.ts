@@ -1,6 +1,8 @@
 import { ConnectRequest } from "./connectrequest.ts";
+import { wsHandlers, wsi } from "./deps.ts";
 import { ExtendedWs } from "./ExtendedWs.ts";
 import { Game } from "./Game.ts";
+import { sendMessageToId } from "./WebSocketInterface.ts";
 
 const games: Array<Game> = [];
 
@@ -38,54 +40,34 @@ export function resetGameByAttendeeId(id: string) {
   //games[index] = new Game(games[index].hostId, games[index].hostWs);
 }
 
-const pendingConnectRequests: Array<ConnectRequest> = [];
+const pendingConnectRequests = new Map<string, string>();
 
 export function createConnectRequest(
-  attendeeId: string,
-  connectTo: string,
-  ws: ExtendedWs,
+  ownId: string,
+  opponentId: string
 ) {
-  if (findConnectRequestByAttendeeId(attendeeId) !== undefined) {
-    throw new Error("Attendee already has a connect request");
-  }
-  const request = new ConnectRequest(attendeeId, connectTo, ws);
-  pendingConnectRequests.push(request);
+  pendingConnectRequests.set(ownId, opponentId);
+  startConnectRequestTimeout(ownId);
 }
 
-export function findConnectRequestByAttendeeId(
-  attendeeId: string,
-): ConnectRequest | undefined {
-  return pendingConnectRequests.find((request) =>
-    request.attendeeId === attendeeId
-  );
+export function connectRequestMatches(ownId: string, opponentId: string) {
+  return pendingConnectRequests.get(ownId) === opponentId;
 }
 
-export function attendeeHostMatch(attendeeId: string, hostId: string): boolean {
-  const request = findConnectRequestByAttendeeId(attendeeId);
-  if (!request) {
-    return false;
-  }
-
-  return request.connectTo === hostId;
+export function removeConnectRequest(ownId: string) {
+  pendingConnectRequests.delete(ownId);
 }
 
-export function declineAttendeeRequest(attendeeId: string): ExtendedWs | null {
-  const request = findConnectRequestByAttendeeId(attendeeId);
-  if (!request) {
-    return null;
-  }
-  const ws = request.ws;
-
-  removeAttendeeFromArray(attendeeId);
-
-  return ws;
+export function existsConnectRequest(id: string) {
+  return pendingConnectRequests.has(id);
 }
 
-function removeAttendeeFromArray(attendeeId: string) {
-  pendingConnectRequests.splice(
-    pendingConnectRequests.findIndex((request) =>
-      request.attendeeId === attendeeId
-    ),
-    1,
-  );
+function startConnectRequestTimeout(id: string) {
+  // Connection requests timeout after 20 seconds
+  setTimeout(() => {
+    if (pendingConnectRequests.has(id)) {
+      wsHandlers.handleSendTimeoutMessage(id);
+      wsi.close(id);
+    }
+  }, 20_000);
 }

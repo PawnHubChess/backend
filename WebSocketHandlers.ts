@@ -53,11 +53,6 @@ export async function handleReceiveConnectResponse(ownId: string, data: any) {
 
   const opponentId = data.clientId;
   await amqpHandlers.handleSendConnectResponse(ownId, opponentId, accepted);
-
-  if (accepted) {
-    const game = createGame(ownId, opponentId);
-    wsi.sendMatchedMessage(ownId, game);
-  }
 }
 
 function handleAlreadyInGameError(id: string) {
@@ -75,5 +70,11 @@ function handleReceiveDisconnect(id: string) {
 export function handleSendGameClosedMessage(id: string) {
   wsi.sendMessageToId(id, {
     type: "opponent-disconnected",
+  });
+}
+
+export function handleSendTimeoutMessage(id: string) {
+  wsi.sendMessageToId(id, {
+    type: "timeout",
   });
 }

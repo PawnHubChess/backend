@@ -1,4 +1,12 @@
-import { isPortAvailableSync, parse, serve, wsi, amqp, wsHandlers, amqpHandlers } from "./deps.ts";
+import {
+  amqp,
+  amqpHandlers,
+  isPortAvailableSync,
+  parse,
+  serve,
+  wsHandlers,
+  wsi,
+} from "./deps.ts";
 import { ExtendedWs } from "./ExtendedWs.ts";
 import {
   handleDisconnected,
@@ -11,6 +19,11 @@ import {
   startReconnectTransaction,
   verifyReconnectCode,
 } from "./ReconnectHandler.ts";
+import {
+  createConnectRequest,
+  existsConnectRequest,
+  removeConnectRequest,
+} from "./serverstate.ts";
 
 // CLI options
 export const flags = parse(Deno.args, {
@@ -71,9 +84,11 @@ async function handleConnected(ws: WebSocket, url: URL) {
   } else {
     if (!handleCheckConnectParamsValid(ws, url)) return;
     const id = await handleNewlyConnected(ws, false);
+    const opponent = url.searchParams.get("id")!;
+    createConnectRequest(id, opponent);
     amqpHandlers.handleSendConnectRequest(
       id,
-      url.searchParams.get("id")!,
+      opponent,
       url.searchParams.get("code")!,
     );
   }
@@ -136,6 +151,7 @@ async function handleReconnect(
 function handleDisconnect(ws: WebSocket) {
   const id = wsi.getId(ws);
   if (!id) return;
+  if (existsConnectRequest(id)) removeConnectRequest(id);
   startReconnectTransaction(id);
 }
 
