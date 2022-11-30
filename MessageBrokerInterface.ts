@@ -54,3 +54,11 @@ export async function destroyQueue(queue: string) {
   const channel = await getChannel();
   await channel.deleteQueue({ queue: queue });
 }
+
+export async function createAndSubscribeToIdQueue(
+  id: string,
+  callback: (message: any) => void,
+) {
+  await createQueue(id);
+  await subscribe(id, callback);
+}

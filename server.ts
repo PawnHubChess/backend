@@ -6,6 +6,7 @@ import {
   handleConnectHost,
   handleDeclineAttendeeRequest,
 } from "./matchmaking.ts";
+import { createAndSubscribeToIdQueue } from "./MessageBrokerInterface.ts";
 import {
   handleDisconnected,
   handleGetBoard,
@@ -34,9 +35,6 @@ const reconnectTimeouts = new Map<string, number>();
 // deno-lint-ignore no-explicit-any
 export function handleMessage(ws: ExtendedWs, data: any) {
   switch (data.type) {
-    case "connect-host":
-      handleConnectHost(ws);
-      break;
     case "connect-attendee":
       handleConnectAttendeeRequest(ws, data.host, data.code);
       break;
@@ -60,6 +58,10 @@ export function handleMessage(ws: ExtendedWs, data: any) {
   }
 }
 
+export function handleInstanceMessage(id: string, message: any) {
+  // todo
+}
+
 function handleError(e: Event | ErrorEvent) {
   console.log(e instanceof ErrorEvent ? e.message : e.type);
 }
@@ -78,49 +80,42 @@ function reqHandler(req: Request) {
     );
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
-  const ews = ws as ExtendedWs;
 
-  const url = new URL(req.url);
-
-  if (url.pathname === "/host") {
-    ws.onopen = () => handleHostConnected(ws);
-  } else if (url.pathname === "/reconnect") {
-    ws.onopen = () =>
-      handleReconnect(
-        ws,
-        url.searchParams.get("id")!,
-        url.searchParams.get("reconnectCode")!,
-      );
-  } else {
-    ws.onopen = () => handleConnected(ws);
-  }
-
-  ews.onmessage = (m) => handleMessage(ews, JSON.parse(m.data));
-  ews.onclose = () => handleDisconnect(ews);
-  ews.onerror = (e) => handleError(e);
+  ws.onmessage = (e) => handleConnected(ws, new URL(req.url));
+  ws.onmessage = (m) => handleMessage(ws, JSON.parse(m.data));
+  ws.onclose = () => handleDisconnect(ws);
+  ws.onerror = (e) => handleError(e);
   return response;
 }
 
-async function handleConnected(ws: WebSocket) {
-  const id = await connect(ws, false);
-  const reconnectCode = await generateReconnectCode(id);
-  sendMessageToId(id, {
-    type: "connected",
-    host: false,
-    id: id,
-    reconnectCode: reconnectCode,
-  });
+function handleConnected(ws: WebSocket, url: URL) {
+  if (url.pathname === "/reconnect") {
+    handleReconnect(
+      ws,
+      url.searchParams.get("id")!,
+      url.searchParams.get("reconnectCode")!,
+    );
+    return;
+  } else {
+    handleNewlyConnected(ws, url.pathname === "/host");
+  }
 }
 
-async function handleHostConnected(ws: WebSocket) {
-  const id = await connect(ws, true);
+async function handleNewlyConnected(ws: WebSocket, isHost: boolean) {
+  const id = await connect(ws, isHost);
   const reconnectCode = await generateReconnectCode(id);
+  
   sendMessageToId(id, {
     type: "connected",
-    host: true,
+    host: isHost,
     id: id,
     reconnectCode: reconnectCode,
   });
+
+  createAndSubscribeToIdQueue(
+    id,
+    (message) => handleInstanceMessage(id, message),
+  );
 }
 
 async function handleReconnect(
