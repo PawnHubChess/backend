@@ -29,7 +29,7 @@ export async function startReconnectTransaction(id: string) {
   });
 }
 
-export async function completeReconnectTransation(id: string): Promise<string> {
+export async function completeReconnectTransaction(id: string): Promise<string> {
   await publish(QUEUES.reconnectComplete, { id: id });
   // Regenerate reconnect code
   const newCode = await generateReconnectCode(id);

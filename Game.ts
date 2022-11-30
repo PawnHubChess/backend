@@ -5,15 +5,13 @@ import { sendMessageToId } from "./WebSocketInterface.ts";
 
 export class Game {
   hostId: string;
-  hostWs: ExtendedWs;
-  attendeeId: string | undefined;
-  attendeeWs: ExtendedWs | undefined;
+  attendeeId: string;
   board: Board = new Board();
   nextMoveWhite: boolean;
 
-  constructor(hostId: string, hostWs: ExtendedWs) {
+  constructor(hostId: string, attendeeId: string) {
     this.hostId = hostId;
-    this.hostWs = hostWs;
+    this.attendeeId = attendeeId;
     this.nextMoveWhite = true;
   }
 

@@ -12,7 +12,7 @@ import {
   handleMakeMove,
 } from "./playing.ts";
 import {
-  completeReconnectTransation,
+  completeReconnectTransaction,
   generateReconnectCode,
   startReconnectTransaction,
   verifyReconnectCode,
@@ -129,7 +129,7 @@ async function handleReconnect(
   reconnectCode: string,
 ) {
   if (verifyReconnectCode(id, reconnectCode)) {
-    const newCode = await completeReconnectTransation(id);
+    const newCode = await completeReconnectTransaction(id);
     connect(ws, false, id);
     sendMessageToId(id, {
       type: "reconnected",
