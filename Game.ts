@@ -4,24 +4,15 @@ import { ExtendedWs } from "./ExtendedWs.ts";
 import { sendMessageToId } from "./WebSocketInterface.ts";
 
 export class Game {
-  hostId: string;
-  attendeeId: string;
+  selfId: string;
+  opponentId: string;
   board: Board = new Board();
   nextMoveWhite: boolean;
 
-  constructor(hostId: string, attendeeId: string) {
-    this.hostId = hostId;
-    this.attendeeId = attendeeId;
+  constructor(selfId: string, opponentId: string) {
+    this.selfId = selfId;
+    this.opponentId = opponentId;
     this.nextMoveWhite = true;
-  }
-
-  sendMatchedInfo() {
-    const msg = {
-      "type": "matched",
-      "fen": this.board.toFEN() + (this.nextMoveWhite ? " w" : " b"),
-    };
-    sendMessageToId(this.hostId, msg);
-    sendMessageToId(this.attendeeId!, msg);
   }
 
   validateCorrectPlayerMoved(from: BoardPosition, id: string): boolean {
@@ -52,15 +43,15 @@ export class Game {
   }
 
   sendToOpponent(id: string, data: any) {
-    const otherPlayerWs = this.isHost(id) ? this.attendeeWs : this.hostWs;
-    if (!otherPlayerWs || otherPlayerWs.readyState !== WebSocket.OPEN) {
-      // ws queue messages if opponent ws is not ready. Will be implemented when switching to cloud native
-      return;
-    }
-    sendMessageToId(otherPlayerWs.id!, data);
+    const otherPlayerId = this.isHost(id) ? this.attendeeId : this.hostId;
+    sendMessageToId(otherPlayerId, data);
   }
 
   isHost(id: string) {
     return this.hostId === id;
+  }
+
+  getFEN() {
+    return this.board.toFEN() + (this.nextMoveWhite ? " w" : " b");
   }
 }

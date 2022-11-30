@@ -8,7 +8,7 @@ export async function generateId(ws: WebSocket, isHost: boolean): Promise<string
   } else {
     return await v5.generate(
       "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-      new TextEncoder().encode(JSON.stringify(ws)),
+      new TextEncoder().encode(JSON.stringify(ws) + Math.random() * Math.random()),
     );
   }
 }
@@ -23,4 +23,13 @@ function generateHostId(): string {
   } while (isConnected(id));
 
   return id;
+}
+
+export function safeParseJson(data: any): any | undefined {
+  try {
+    return JSON.parse(data);
+  } catch (e) {
+    return undefined;
+    console.error("Client sent invalid JSON", e);
+  }	
 }

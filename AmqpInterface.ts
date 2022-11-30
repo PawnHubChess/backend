@@ -55,6 +55,11 @@ export async function destroyQueue(queue: string) {
   await channel.deleteQueue({ queue: queue });
 }
 
+export async function queueExists(queue: string) {
+  // todo
+  return true;
+}
+
 export async function createAndSubscribeToIdQueue(
   id: string,
   callback: (message: any) => void,

@@ -1,13 +1,5 @@
-import { isPortAvailableSync, parse, serve } from "./deps.ts";
-import { applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
-import {
-  handleAcceptAttendeeRequest,
-  handleDeclineAttendeeRequest,
-} from "./matchmaking.ts";
-import {
-  createAndSubscribeToIdQueue,
-  publish,
-} from "./MessageBrokerInterface.ts";
+import { isPortAvailableSync, parse, serve, wsi, amqp, wsHandlers, amqpHandlers } from "./deps.ts";
+import { ExtendedWs } from "./ExtendedWs.ts";
 import {
   handleDisconnected,
   handleGetBoard,
@@ -19,13 +11,6 @@ import {
   startReconnectTransaction,
   verifyReconnectCode,
 } from "./ReconnectHandler.ts";
-import { findGameById, findWsById } from "./serverstate.ts";
-import {
-  connect,
-  getId,
-  sendMessageToId,
-  sendRequestMessage,
-} from "./WebSocketInterface.ts";
 
 // CLI options
 export const flags = parse(Deno.args, {
@@ -37,14 +22,8 @@ if (flags.debug) console.warn("Running in debug mode");
 
 // Rewire is not yet available for Deno; export for testing
 // deno-lint-ignore no-explicit-any
-export function handleMessage(ws: ExtendedWs, data: any) {
+function handleMessage(ws: ExtendedWs, data: any) {
   switch (data.type) {
-    case "accept-attendee-request":
-      handleAcceptAttendeeRequest(ws, data.clientId);
-      break;
-    case "decline-attendee-request":
-      handleDeclineAttendeeRequest(data.clientId);
-      break;
     case "send-move":
       handleMakeMove(ws, data.from, data.to);
       break;
@@ -59,22 +38,8 @@ export function handleMessage(ws: ExtendedWs, data: any) {
   }
 }
 
-export function handleInstanceMessage(id: string, message: any) {
-  switch (message.type) {
-    case "connect-request":
-      handleReceiveRequest(id, message);
-      break;
-  }
-}
-
 function handleError(e: Event | ErrorEvent) {
   console.log(e instanceof ErrorEvent ? e.message : e.type);
-}
-
-function handleDisconnect(ws: ExtendedWs) {
-  const id = getId(ws);
-  if (!id) return;
-  startReconnectTransaction(id);
 }
 
 function reqHandler(req: Request) {
@@ -86,8 +51,8 @@ function reqHandler(req: Request) {
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
 
-  ws.onmessage = (e) => handleConnected(ws, new URL(req.url));
-  ws.onmessage = (m) => handleMessage(ws, JSON.parse(m.data));
+  ws.onopen = () => handleConnected(ws, new URL(req.url));
+  ws.onmessage = (m) => wsHandlers.handleMessage(ws, m.data);
   ws.onclose = () => handleDisconnect(ws);
   ws.onerror = (e) => handleError(e);
   return response;
@@ -101,34 +66,47 @@ async function handleConnected(ws: WebSocket, url: URL) {
       url.searchParams.get("reconnectCode")!,
     );
     return;
+  } else if (url.pathname === "/host") {
+    await handleNewlyConnected(ws, true);
   } else {
-    const isHost = url.pathname === "/host";
-    const id = await handleNewlyConnected(ws, isHost);
-
-    if (isHost) {
-      handleSendRequest(
-        id,
-        url.searchParams.get("id")!,
-        url.searchParams.get("code")!,
-      );
-    }
+    if (!handleCheckConnectParamsValid(ws, url)) return;
+    const id = await handleNewlyConnected(ws, false);
+    amqpHandlers.handleSendConnectRequest(
+      id,
+      url.searchParams.get("id")!,
+      url.searchParams.get("code")!,
+    );
   }
 }
 
+function handleCheckConnectParamsValid(ws: WebSocket, url: URL) {
+  const id = url.searchParams.get("id");
+  const code = url.searchParams.get("code");
+  if (!id || !code) {
+    ws.send(JSON.stringify({
+      type: "error",
+      error: "missing-connect-params",
+    }));
+    ws.close();
+    return false;
+  }
+  return true;
+}
+
 async function handleNewlyConnected(ws: WebSocket, isHost: boolean) {
-  const id = await connect(ws, isHost);
+  const id = await wsi.connected(ws, isHost);
   const reconnectCode = await generateReconnectCode(id);
 
-  sendMessageToId(id, {
+  wsi.sendMessageToId(id, {
     type: "connected",
     host: isHost,
     id: id,
     reconnectCode: reconnectCode,
   });
 
-  createAndSubscribeToIdQueue(
+  amqp.createAndSubscribeToIdQueue(
     id,
-    (message) => handleInstanceMessage(id, message),
+    (message) => amqpHandlers.handleMessage(id, message),
   );
 
   return id;
@@ -141,8 +119,8 @@ async function handleReconnect(
 ) {
   if (verifyReconnectCode(id, reconnectCode)) {
     const newCode = await completeReconnectTransaction(id);
-    connect(ws, false, id);
-    sendMessageToId(id, {
+    wsi.connected(ws, false, id);
+    wsi.sendMessageToId(id, {
       type: "reconnected",
       reconnectCode: newCode,
     });
@@ -155,31 +133,15 @@ async function handleReconnect(
   }
 }
 
-async function handleSendRequest(
-  ownId: string,
-  recipientId: string,
-  code: string,
-) {
-  try {
-    await publish(recipientId, {
-      type: "connect-request",
-      id: ownId,
-      code: code,
-    });
-  } catch (e) {
-    // Error is most probably caused by queue not existing
-    sendMessageToId(ownId, {
-      type: "request-declined",
-      details: "nonexistent",
-      message: "Host does not exist",
-    });
-  }
+function handleDisconnect(ws: WebSocket) {
+  const id = wsi.getId(ws);
+  if (!id) return;
+  startReconnectTransaction(id);
 }
 
-function handleReceiveRequest(ownId: string, message: any) {
-  const senderId = message.id;
-  const code = message.code;
-  sendRequestMessage(ownId, senderId, code);
+export function handleFinalDisconnect(id: string) {
+  wsi.disconnected(id);
+  amqp.destroyQueue(id);
 }
 
 if (isPortAvailableSync({ port: 3000 })) {

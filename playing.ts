@@ -2,13 +2,13 @@ import { BoardPosition } from "./BoardPosition.ts";
 import { ExtendedWs } from "./ExtendedWs.ts";
 import {
   closeGameByHostId,
-  findGameById,
+getGameById,
 resetGameByAttendeeId,
 } from "./serverstate.ts";
 import { sendMessageToId } from "./WebSocketInterface.ts";
 
 export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
-  const game = findGameById(ws.id!)!;
+  const game = getGameById(ws.id!)!;
   const fromPos = new BoardPosition(from);
   const toPos = new BoardPosition(to);
 

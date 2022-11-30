@@ -4,67 +4,38 @@ import { Game } from "./Game.ts";
 
 const games: Array<Game> = [];
 
-export function createHost(hostId: string, ws: ExtendedWs) {
-  if (gameExists(hostId)) {
-    throw new Error("Host already exists");
-  }
-
-  games.push(new Game(hostId, ws));
-}
-
-export function findGameByHostid(id: string): Game | undefined {
-  return games.find((game) => game.hostId === id);
-}
-
-export function findGameByAttendeeId(id: string): Game | undefined {
-  return games.find((game) => game.attendeeId === id);
-}
-
-export function findGameById(id: string): Game | undefined {
-  return games.find((game) => game.hostId === id || game.attendeeId === id);
-}
-
-export function gameExists(hostId: string): boolean {
-  return typeof findGameByHostid(hostId) !== "undefined";
-}
-
-export function findWsById(id: string): ExtendedWs | undefined {
-  const game = findGameById(id);
-  if (!game) return;
-
-  if (game.hostWs.id === id) return game.hostWs;
-  else if (game.attendeeWs?.id === id) return game.attendeeWs;
-  else return;
-}
-
-function addAttendeeToGame(
-  hostId: string,
-  attendeeId: string,
-  ws: ExtendedWs,
-): Game {
-  const game = findGameByHostid(hostId);
-  if (!game) {
-    throw new Error("Game does not exist");
-  }
-
-  game.attendeeId = attendeeId;
-  game.attendeeWs = ws;
-
+export function createGame(selfId: string, opponentId: string): Game {
+  const game = new Game(selfId, opponentId);
+  games.push(game);
   return game;
 }
 
+export function getGameById(id: string): Game | undefined {
+  return games.find((game) => game.selfId === id || game.opponentId === id);
+}
+
+export function gameExists(hostId: string): boolean {
+  return typeof findGameById(hostId) !== "undefined";
+}
+
+export function selfInGame(ownId: string): boolean {
+  return games.find((game) => game.selfId === ownId) !== undefined;
+}
+
 export function closeGameByHostId(id: string) {
-  const index = games.findIndex((game) => game.hostId == id);
-  games[index].hostWs.close()
-  games[index].attendeeWs?.close();
-  games.splice(index, 1);
+  //const index = games.findIndex((game) => game.self == id);
+  // todo
+  //games[index].hostWs.close();
+  //games[index].attendeeWs?.close();
+  //games.splice(index, 1);
 }
 
 export function resetGameByAttendeeId(id: string) {
-  const index = games.findIndex((game) => game.attendeeId === id);
-  if (index === -1) return;
-  games[index].attendeeWs?.close();
-  games[index] = new Game(games[index].hostId, games[index].hostWs);
+  //const index = games.findIndex((game) => game.attendeeId === id);
+  //if (index === -1) return;
+  // todo
+  //games[index].attendeeWs?.close();
+  //games[index] = new Game(games[index].hostId, games[index].hostWs);
 }
 
 const pendingConnectRequests: Array<ConnectRequest> = [];
@@ -96,23 +67,6 @@ export function attendeeHostMatch(attendeeId: string, hostId: string): boolean {
   }
 
   return request.connectTo === hostId;
-}
-
-export function acceptConnectRequest(attendeeId: string): Game | null {
-  const request = findConnectRequestByAttendeeId(attendeeId);
-  if (!request) {
-    return null;
-  }
-
-  const game = addAttendeeToGame(
-    request.connectTo,
-    request.attendeeId,
-    request.ws,
-  );
-
-  removeAttendeeFromArray(attendeeId);
-
-  return game;
 }
 
 export function declineAttendeeRequest(attendeeId: string): ExtendedWs | null {
