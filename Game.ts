@@ -1,5 +1,6 @@
 import { Board } from "./Board.ts";
 import { BoardPosition } from "./BoardPosition.ts";
+import { isHostId } from "./Utils.ts";
 import { sendMessageToId } from "./WebSocketInterface.ts";
 
 export class Game {
@@ -16,11 +17,11 @@ export class Game {
 
   validateCorrectPlayerMoved(from: BoardPosition, id: string): boolean {
     // Host is always black
-    const shouldBeWhite = id === this.attendeeId;
-    // Check if this player is allowed to make the next move
-    if (shouldBeWhite !== this.nextMoveWhite) return false;
+    const selfIsWhite = !isHostId(this.selfId);
+    if (selfIsWhite !== this.nextMoveWhite) return false;
     // Check if the piece is the correct color
-    return shouldBeWhite === this.board.get(from)?.isWhite;
+    if (selfIsWhite !== this.board.get(from)?.isWhite) return false;
+    return true;
   }
 
   validateMove(from: BoardPosition, to: BoardPosition) {
@@ -40,7 +41,7 @@ export class Game {
   }
 
   isHost(id: string) {
-    return this.hostId === id;
+    return this.selfId === id;
   }
 
   getFEN() {

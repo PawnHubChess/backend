@@ -1,9 +1,8 @@
 import { handleGameClosedMessage } from "./AmqpHandlers.ts";
 import { BoardPosition } from "./BoardPosition.ts";
-import { King } from "./ChessPieces/King.ts";
 import { amqp, amqpHandlers, wsi } from "./deps.ts";
 import { Game } from "./Game.ts";
-import { createGame, getGameById, selfInGame } from "./serverstate.ts";
+import { getGameById, selfInGame } from "./serverstate.ts";
 import { safeParseJson } from "./Utils.ts";
 import { sendMessageToId } from "./WebSocketInterface.ts";
 
