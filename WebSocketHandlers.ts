@@ -1,6 +1,5 @@
-import { handleSendGameClosedMessage } from "./AmqpHandlers.ts";
 import { BoardPosition } from "./BoardPosition.ts";
-import { amqp, amqpHandlers, wsi } from "./deps.ts";
+import { amqp, amqpHandlers, wsi } from "./deps_int.ts";
 import { Game } from "./Game.ts";
 import { getGameById, removeGame, selfInGame } from "./serverstate.ts";
 import { safeParseJson } from "./Utils.ts";
@@ -166,7 +165,7 @@ function handleAcceptMove(
 }
 
 function handleReceiveDisconnect(id: string) {
-  handleSendGameClosedMessage(id);
+  amqpHandlers.handleSendGameClosedMessage(id);
   removeGame(id);
   wsi.close(id);
 }

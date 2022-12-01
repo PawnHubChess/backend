@@ -1,13 +1,10 @@
 import { queueExists } from "./AmqpInterface.ts";
 import {
-  amqp,
-  amqpHandlers,
   isPortAvailableSync,
   parse,
   serve,
-  wsHandlers,
-  wsi,
 } from "./deps.ts";
+import { amqp, amqpHandlers, wsHandlers, wsi } from "./deps_int.ts";
 import {
   completeReconnectTransaction,
   generateReconnectCode,

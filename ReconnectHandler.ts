@@ -1,8 +1,8 @@
 import { v5 } from "https://deno.land/std@0.160.0/uuid/mod.ts";
 import { QUEUES } from "./AmqpInterface.ts";
-import { amqp, amqpHandlers } from "./deps.ts";
+import { amqp, amqpHandlers } from "./deps_int.ts";
 import { handleFinalDisconnect } from "./server.ts";
-import { removeGame, selfInGame } from "./serverstate.ts";
+import { removeGame } from "./serverstate.ts";
 
 const reconnectCodesLocal = new Map<string, string>(); // Map<id, reconnectCode>
 const pendingReconnectsSynced = new Map<string, string>(); // Map<id, reconnectCode>

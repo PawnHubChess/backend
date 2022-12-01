@@ -1,4 +1,4 @@
-import { wsHandlers, wsi } from "./deps.ts";
+import { wsHandlers, wsi } from "./deps_int.ts";
 import { Game } from "./Game.ts";
 
 const games: Array<Game> = [];
