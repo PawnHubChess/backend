@@ -151,4 +151,7 @@ function reqHandler(req: Request) {
 
 if (isPortAvailableSync({ port: 3000 })) {
   serve(reqHandler, { port: 3000 });
+} else {
+  console.log("Port 3000 is already in use");
 }
+
