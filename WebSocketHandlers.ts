@@ -2,7 +2,7 @@ import { handleSendGameClosedMessage } from "./AmqpHandlers.ts";
 import { BoardPosition } from "./BoardPosition.ts";
 import { amqp, amqpHandlers, wsi } from "./deps.ts";
 import { Game } from "./Game.ts";
-import { getGameById, selfInGame } from "./serverstate.ts";
+import { getGameById, removeGame, selfInGame } from "./serverstate.ts";
 import { safeParseJson } from "./Utils.ts";
 import { sendMessageToId } from "./WebSocketInterface.ts";
 
@@ -167,6 +167,7 @@ function handleAcceptMove(
 
 function handleReceiveDisconnect(id: string) {
   handleSendGameClosedMessage(id);
+  removeGame(id);
   wsi.close(id);
 }
 

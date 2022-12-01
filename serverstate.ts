@@ -17,20 +17,9 @@ export function selfInGame(ownId: string): boolean {
   return games.find((game) => game.selfId === ownId) !== undefined;
 }
 
-export function closeGameByHostId(id: string) {
-  //const index = games.findIndex((game) => game.self == id);
-  // todo
-  //games[index].hostWs.close();
-  //games[index].attendeeWs?.close();
-  //games.splice(index, 1);
-}
-
-export function resetGameByAttendeeId(id: string) {
-  //const index = games.findIndex((game) => game.attendeeId === id);
-  //if (index === -1) return;
-  // todo
-  //games[index].attendeeWs?.close();
-  //games[index] = new Game(games[index].hostId, games[index].hostWs);
+export function removeGame(ownId: string) {
+  const index = games.findIndex((game) => game.selfId === ownId);
+  if (index !== -1) games.splice(index, 1);
 }
 
 const pendingConnectRequests = new Map<string, string>();
@@ -62,5 +51,5 @@ function startConnectRequestTimeout(id: string) {
       wsHandlers.handleSendTimeoutMessage(id);
       wsi.close(id);
     }
-  }, 20_000);
+  }, 10_000);
 }

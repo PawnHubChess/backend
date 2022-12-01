@@ -2,7 +2,7 @@ import { v5 } from "https://deno.land/std@0.160.0/uuid/mod.ts";
 import { QUEUES } from "./AmqpInterface.ts";
 import { amqp, amqpHandlers } from "./deps.ts";
 import { handleFinalDisconnect } from "./server.ts";
-import { selfInGame } from "./serverstate.ts";
+import { removeGame, selfInGame } from "./serverstate.ts";
 
 const reconnectCodesLocal = new Map<string, string>(); // Map<id, reconnectCode>
 const pendingReconnectsSynced = new Map<string, string>(); // Map<id, reconnectCode>
@@ -22,10 +22,19 @@ export function verifyReconnectCode(id: string, code: string): boolean {
 }
 
 export async function startReconnectTransaction(id: string) {
+  const currentCode = reconnectCodesLocal.get(id);
   await amqp.publish(QUEUES.reconnect, {
     id: id,
-    code: reconnectCodesLocal.get(id),
+    code: currentCode,
   });
+  // Reset after 10 second timeout
+  setTimeout(() => {
+    if (pendingReconnectsSynced.get(id) === currentCode) {
+      amqpHandlers.handleSendGameClosedMessage(id);
+      removeGame(id);
+      handleFinalDisconnect(id);
+    }
+  }, 10_000);
 }
 
 export async function completeReconnectTransaction(
@@ -40,14 +49,12 @@ export async function completeReconnectTransaction(
 async function subscribeToReconnects() {
   await amqp.subscribe(QUEUES.reconnect, (message: any) => {
     pendingReconnectsSynced.set(message.id, message.code);
-    // Timeout reconnects after 20 seconds
+    // Timeout reconnects after 10 seconds
     setTimeout(() => {
       if (pendingReconnectsSynced.get(message.id) === message.code) {
         pendingReconnectsSynced.delete(message.id);
-        amqpHandlers.handleSendGameClosedMessage(message.id);
-        handleFinalDisconnect(message.id);
       }
-    }, 60_000);
+    }, 10_000);
   });
 }
 subscribeToReconnects();
