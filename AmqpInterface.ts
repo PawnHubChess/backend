@@ -22,10 +22,11 @@ export async function subscribe(
   await channel.consume(
     { queue: queue, consumerTag: queue },
     async (args, _, data) => {
+      await channel.ack({ deliveryTag: args.deliveryTag });
+      
       if (args.consumerTag !== queue) return; // todo there must be a better way for this
       const json = JSON.parse(new TextDecoder().decode(data));
       callback(json);
-      await channel.ack({ deliveryTag: args.deliveryTag });
     },
   );
 }
@@ -71,7 +72,7 @@ export async function queueExists(queue: string) {
     },
   );
   const data = await apiResponse.json();
-  
+
   if (data.name === queue) return true;
   else return false;
 }

@@ -69,13 +69,15 @@ export async function handleSendConnectResponse(
 function handleReceiveConnectResponse(ownId: string, message: any) {
   if (selfInGame(ownId)) {
     console.error("Received connect response while in game");
+    console.log(JSON.stringify(message))
     return;
   }
   const opponentId = message.id;
   const accepted = message.accept;
-
+  
   if (!connectRequestMatches(ownId, opponentId)) {
     console.warn("Received connect response from unexpected client");
+    console.log(JSON.stringify(message))
     return;
   }
   removeConnectRequest(ownId);
