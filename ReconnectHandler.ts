@@ -1,7 +1,8 @@
 import { v5 } from "https://deno.land/std@0.160.0/uuid/mod.ts";
 import { QUEUES } from "./AmqpInterface.ts";
-import { amqp } from "./deps.ts";
+import { amqp, amqpHandlers } from "./deps.ts";
 import { handleFinalDisconnect } from "./server.ts";
+import { selfInGame } from "./serverstate.ts";
 
 const reconnectCodesLocal = new Map<string, string>(); // Map<id, reconnectCode>
 const pendingReconnectsSynced = new Map<string, string>(); // Map<id, reconnectCode>
@@ -27,7 +28,9 @@ export async function startReconnectTransaction(id: string) {
   });
 }
 
-export async function completeReconnectTransaction(id: string): Promise<string> {
+export async function completeReconnectTransaction(
+  id: string,
+): Promise<string> {
   await amqp.publish(QUEUES.reconnectComplete, { id: id });
   // Regenerate reconnect code
   const newCode = await generateReconnectCode(id);
@@ -41,6 +44,7 @@ async function subscribeToReconnects() {
     setTimeout(() => {
       if (pendingReconnectsSynced.get(message.id) === message.code) {
         pendingReconnectsSynced.delete(message.id);
+        amqpHandlers.handleSendGameClosedMessage(message.id);
         handleFinalDisconnect(message.id);
       }
     }, 60_000);

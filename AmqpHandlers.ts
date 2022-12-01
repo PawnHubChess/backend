@@ -137,7 +137,7 @@ function handleReceiveMoveMessage(ownId: string, message: any) {
   wsHandlers.handleSendMoveMessage(ownId, from, to, game);
 }
 
-export function handleGameClosedMessage(ownId: string) {
+export function handleSendGameClosedMessage(ownId: string) {
   const game = getGameById(ownId);
   if (!game) return;
   amqp.publish(game.opponentId, {
