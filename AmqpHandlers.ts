@@ -79,9 +79,8 @@ function handleReceiveConnectResponse(ownId: string, message: any) {
 
   if (!accepted) {
     wsi.sendMessageToId(ownId, {
-      type: "request-declined",
-      details: "declined",
-      message: "Host declined request",
+      type: "error",
+      error: "Host declined request",
     });
     wsi.close(ownId);
     return;
@@ -130,7 +129,7 @@ function handleReceiveMoveMessage(ownId: string, message: any) {
     return;
   }
   game.makeMove(message.from, message.to);
-  
+
 }
 
 export function handleGameClosedMessage(ownId: string) {
