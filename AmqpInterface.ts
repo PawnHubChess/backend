@@ -1,4 +1,5 @@
 import { getChannel } from "./MessageBrokerChannel.ts";
+import { safeParseJson } from "./Utils.ts";
 
 export const QUEUES = {
   reconnect: "reconnect",
@@ -46,9 +47,7 @@ export async function publish(queue: string, message: any) {
 // MUST be awaited BEFORE publishing or subscribing
 export async function createQueue(queue: string) {
   const channel = await getChannel();
-  console.log("creating queue", queue);
   await channel.declareQueue({ queue: queue });
-  console.log("created queue", queue);
 }
 
 // This will DELETE ALL messages in the queue
@@ -58,10 +57,23 @@ export async function destroyQueue(queue: string) {
 }
 
 export async function queueExists(queue: string) {
-  //const channel = await getChannel();
-  //const response = await channel.declareQueue({ queue: queue, passive: true });
-  //console.log(response);
-  return true;
+  const apiResponse = await fetch(
+    `https://${Deno.env.get("AMQP_HOST")}/api/queues/${
+      Deno.env.get("AMQP_USER")
+    }/${queue}`,
+    {
+      method: "GET",
+      headers: {
+        "Authorization": `Basic ${
+          btoa(`${Deno.env.get("AMQP_USER")}:${Deno.env.get("AMQP_PASSWORD")}`)
+        }`,
+      },
+    },
+  );
+  const data = await apiResponse.json();
+  
+  if (data.name === queue) return true;
+  else return false;
 }
 
 export async function createAndSubscribeToIdQueue(

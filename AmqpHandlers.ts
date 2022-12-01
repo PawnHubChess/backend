@@ -1,6 +1,4 @@
-import { queueExists } from "./AmqpInterface.ts";
 import { amqp, wsHandlers, wsi } from "./deps.ts";
-import { Game } from "./Game.ts";
 import {
   connectRequestMatches,
   createGame,
@@ -54,7 +52,6 @@ export async function handleSendConnectResponse(
   recipientId: string,
   accepted: boolean,
 ) {
-  if (!await amqp.queueExists(recipientId)) return;
   await amqp.publish(recipientId, {
     type: "connect-response",
     id: ownId,

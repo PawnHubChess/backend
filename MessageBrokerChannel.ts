@@ -9,7 +9,6 @@ export function getChannel(): Promise<AmqpChannel> {
   if (pendingPromise) return pendingPromise;
 
   pendingPromise = openChannel();
-  console.log("channel gotten");
   return pendingPromise;
 }
 
@@ -18,7 +17,7 @@ function openChannel(): Promise<AmqpChannel> {
   return new Promise<AmqpChannel>(
     async (resolve, reject) => {
       try {
-        const connection = await AmqpConnect(Deno.env.get("CLOUDAMQP_URL")!);
+        const connection = await AmqpConnect(Deno.env.get("AMQP_URL")!);
         channel = await connection.openChannel();
         resolve(channel);
       } catch (error) {

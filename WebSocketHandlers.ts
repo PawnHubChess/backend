@@ -3,6 +3,7 @@ import { King } from "./ChessPieces/King.ts";
 import { amqp, amqpHandlers, wsi } from "./deps.ts";
 import { createGame, selfInGame } from "./serverstate.ts";
 import { safeParseJson } from "./Utils.ts";
+import { sendMessageToId } from "./WebSocketInterface.ts";
 
 export function handleMessage(ws: WebSocket, data: any) {
   const message = safeParseJson(data);
@@ -44,6 +45,15 @@ export async function handleReceiveConnectResponse(ownId: string, data: any) {
     return;
   }
 
+  const opponentId = data.clientId;
+  if (!await amqp.queueExists(opponentId)) {
+    sendMessageToId(ownId, {
+      type: "error",
+      error: "Opponent not found",
+    });
+    return;
+  }
+
   let accepted: boolean;
   if (data.type === "accept-attendee-request") {
     accepted = true;
@@ -51,7 +61,6 @@ export async function handleReceiveConnectResponse(ownId: string, data: any) {
     accepted = false;
   } else return;
 
-  const opponentId = data.clientId;
   await amqpHandlers.handleSendConnectResponse(ownId, opponentId, accepted);
 }
 
@@ -60,6 +69,14 @@ function handleAlreadyInGameError(id: string) {
     type: "error",
     error: "Already in game",
   });
+}
+
+export function handleConnectRequestOpponentNotFoundError(ws: WebSocket) {
+  ws.send(JSON.stringify({
+    type: "error",
+    error: "Opponent not found",
+  }));
+  ws.close();
 }
 
 function handleReceiveDisconnect(id: string) {

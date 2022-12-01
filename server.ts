@@ -1,3 +1,4 @@
+import { queueExists } from "./AmqpInterface.ts";
 import {
   amqp,
   amqpHandlers,
@@ -24,6 +25,7 @@ import {
   existsConnectRequest,
   removeConnectRequest,
 } from "./serverstate.ts";
+import { handleConnectRequestOpponentNotFoundError } from "./WebSocketHandlers.ts";
 
 // CLI options
 export const flags = parse(Deno.args, {
@@ -83,8 +85,14 @@ async function handleConnected(ws: WebSocket, url: URL) {
     await handleNewlyConnected(ws, true);
   } else {
     if (!handleCheckConnectParamsValid(ws, url)) return;
-    const id = await handleNewlyConnected(ws, false);
+    
     const opponent = url.searchParams.get("id")!;
+    if (!await queueExists(opponent)) {
+        handleConnectRequestOpponentNotFoundError(ws);
+        return;
+    }
+    
+      const id = await handleNewlyConnected(ws, false);
     createConnectRequest(id, opponent);
     amqpHandlers.handleSendConnectRequest(
       id,
