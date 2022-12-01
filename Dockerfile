@@ -18,4 +18,4 @@ ADD . .
 RUN deno cache server.ts
 
 # Added to ENTRYPOINT of base image.
-CMD ["run", "--allow-env", "--allow-net", "server.ts"]
+CMD ["run", "--allow-env", "--allow-net", "--allow-read", "server.ts"]
