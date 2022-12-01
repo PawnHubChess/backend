@@ -42,14 +42,6 @@ function handleMessage(ws: ExtendedWs, data: any) {
     case "send-move":
       handleMakeMove(ws, data.from, data.to);
       break;
-    case "get-board":
-      handleGetBoard(ws);
-      break;
-    case "disconnect":
-      handleDisconnected(ws.id!);
-      break;
-    default:
-      console.log("Unknown message type: " + data.type);
   }
 }
 

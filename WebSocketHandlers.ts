@@ -1,7 +1,7 @@
 import { handleGameClosedMessage } from "./AmqpHandlers.ts";
 import { King } from "./ChessPieces/King.ts";
 import { amqp, amqpHandlers, wsi } from "./deps.ts";
-import { createGame, selfInGame } from "./serverstate.ts";
+import { createGame, getGameById, selfInGame } from "./serverstate.ts";
 import { safeParseJson } from "./Utils.ts";
 import { sendMessageToId } from "./WebSocketInterface.ts";
 
@@ -23,6 +23,8 @@ export function handleMessage(ws: WebSocket, data: any) {
     case "disconnect":
       handleReceiveDisconnect(id);
       break;
+    default:
+      console.log("Unexpected WS message: " + message);
   }
 }
 
@@ -77,6 +79,16 @@ export function handleConnectRequestOpponentNotFoundError(ws: WebSocket) {
     error: "Opponent not found",
   }));
   ws.close();
+}
+
+export function handleGetBoard(id: string) {
+  const game = getGameById(id)!;
+  if (!game) return;
+
+  sendMessageToId(id, {
+    type: "board",
+    fen: game.getFEN(),
+  });
 }
 
 function handleReceiveDisconnect(id: string) {

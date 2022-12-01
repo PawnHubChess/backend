@@ -44,15 +44,6 @@ export function handleMakeMove(ws: ExtendedWs, from: string, to: string) {
   checkGameWon();
 }
 
-export function handleGetBoard(ws: ExtendedWs) {
-  const game = findGameById(ws.id!)!;
-  // todo handle not in game
-  sendMessageToId(ws.id!, {
-    type: "board",
-    fen: game.board.toFEN() + (game.nextMoveWhite ? " w" : " b"),
-  });
-}
-
 export function handleDisconnected(id: string) {
   const game = findGameById(id);
   if (!game) return;

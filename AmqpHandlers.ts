@@ -21,6 +21,8 @@ export function handleMessage(id: string, message: any) {
     case "game-closed":
       handleReceiveGameClosed(id);
       break;
+    default:
+      console.log("Unexpected AMQP message: " + message);
   }
 }
 
