@@ -31,7 +31,7 @@ export async function handleSendConnectRequest(
   recipientId: string,
   code: string,
 ) {
-  if (!amqp.queueExists(recipientId)) return;
+  if (!await amqp.queueExists(recipientId)) return;
   await amqp.publish(recipientId, {
     type: "connect-request",
     id: ownId,
@@ -54,7 +54,7 @@ export async function handleSendConnectResponse(
   recipientId: string,
   accepted: boolean,
 ) {
-  if (!amqp.queueExists(recipientId)) return;
+  if (!await amqp.queueExists(recipientId)) return;
   await amqp.publish(recipientId, {
     type: "connect-response",
     id: ownId,

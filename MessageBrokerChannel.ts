@@ -9,6 +9,7 @@ export function getChannel(): Promise<AmqpChannel> {
   if (pendingPromise) return pendingPromise;
 
   pendingPromise = openChannel();
+  console.log("channel gotten");
   return pendingPromise;
 }
 

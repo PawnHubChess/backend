@@ -46,7 +46,9 @@ export async function publish(queue: string, message: any) {
 // MUST be awaited BEFORE publishing or subscribing
 export async function createQueue(queue: string) {
   const channel = await getChannel();
+  console.log("creating queue", queue);
   await channel.declareQueue({ queue: queue });
+  console.log("created queue", queue);
 }
 
 // This will DELETE ALL messages in the queue
@@ -56,7 +58,9 @@ export async function destroyQueue(queue: string) {
 }
 
 export async function queueExists(queue: string) {
-  // todo
+  //const channel = await getChannel();
+  //const response = await channel.declareQueue({ queue: queue, passive: true });
+  //console.log(response);
   return true;
 }
 
