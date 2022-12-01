@@ -1,18 +1,25 @@
-import { serve, isPortAvailableSync, parse } from "./deps.ts";
-import { applyReconnectCode, ExtendedWs } from "./ExtendedWs.ts";
+import { queueExists } from "./AmqpInterface.ts";
 import {
-  handleAcceptAttendeeRequest,
-  handleConnectAttendeeRequest,
-  handleConnected,
-  handleConnectHost,
-  handleDeclineAttendeeRequest,
-} from "./matchmaking.ts";
+  amqp,
+  amqpHandlers,
+  isPortAvailableSync,
+  parse,
+  serve,
+  wsHandlers,
+  wsi,
+} from "./deps.ts";
 import {
-  handleDisconnected,
-  handleGetBoard,
-  handleMakeMove,
-} from "./playing.ts";
-import { findGameById, findWsById } from "./serverstate.ts";
+  completeReconnectTransaction,
+  generateReconnectCode,
+  startReconnectTransaction,
+  verifyReconnectCode,
+} from "./ReconnectHandler.ts";
+import {
+  createConnectRequest,
+  existsConnectRequest,
+  removeConnectRequest,
+} from "./serverstate.ts";
+import { handleConnectRequestOpponentNotFoundError } from "./WebSocketHandlers.ts";
 
 // CLI options
 export const flags = parse(Deno.args, {
@@ -20,114 +27,8 @@ export const flags = parse(Deno.args, {
 });
 if (flags.debug) console.warn("Running in debug mode");
 
-const reconnectTimeouts = new Map<string, number>();
-
-// WebSocket stuff
-
-// Rewire is not yet available for Deno; export for testing
-// deno-lint-ignore no-explicit-any
-export function handleMessage(ws: ExtendedWs, data: any) {
-  switch (data.type) {
-    case "connect-host":
-      handleConnectHost(ws);
-      break;
-    case "connect-attendee":
-      handleConnectAttendeeRequest(ws, data.host, data.code);
-      break;
-    case "accept-attendee-request":
-      handleAcceptAttendeeRequest(ws, data.clientId);
-      break;
-    case "decline-attendee-request":
-      handleDeclineAttendeeRequest(data.clientId);
-      break;
-    case "reconnect":
-      handleReconnect(ws, data.id, data["reconnect-code"]);
-      break;
-    case "send-move":
-      handleMakeMove(ws, data.from, data.to);
-      break;
-    case "get-board":
-      handleGetBoard(ws);
-      break;
-    case "disconnect":
-      handleDisconnected(ws.id!);
-      break;
-    default:
-      console.log("Unknown message type: " + data.type);
-  }
-}
-
 function handleError(e: Event | ErrorEvent) {
   console.log(e instanceof ErrorEvent ? e.message : e.type);
-}
-
-function handleDisconnect(ws: ExtendedWs) {
-  const id = ws.id!;
-  const reconCode = ws.reconnectCode!;
-  // Only continue if the player was in a game
-  if (!findGameById(id)) return;
-  reconnectTimeouts.set(
-    id,
-    setTimeout(() => {
-      // If reconnectCode is the same after 20 seconds, i.e. no reconnect happened, notify opponent
-      const wsAssociatedWithId = findWsById(id);
-      if (wsAssociatedWithId?.reconnectCode === reconCode) {
-        handleDisconnected(id);
-      }
-      reconnectTimeouts.delete(id);
-    }, 20 * 1000),
-  );
-}
-
-function handleReconnect(ws: ExtendedWs, id: string, reconnectCode: string) {
-  const game = findGameById(id);
-  let oldWs: ExtendedWs | undefined;
-  let isHost: boolean | undefined;
-
-  if (game?.hostWs.id === id) {
-    oldWs = game.hostWs;
-    isHost = true;
-  } else if (game?.attendeeWs?.id === id) {
-    oldWs = game.attendeeWs;
-    isHost = false;
-  } else return;
-
-  if (oldWs.readyState === 1) {
-    sendMessage(ws, {
-      type: "error",
-      error: "already-connected",
-    });
-    return;
-  }
-
-  // todo old ip should match new ip
-  if (oldWs.reconnectCode === reconnectCode) {
-    ws.id = id;
-    applyReconnectCode(ws);
-
-    if (isHost) game.hostWs = ws;
-    else game.attendeeWs = ws;
-
-    sendMessage(ws, {
-      type: "reconnected",
-      "reconnect-code": ws.reconnectCode,
-    });
-
-    clearTimeout(reconnectTimeouts.get(id)!);
-    reconnectTimeouts.delete(id);
-  } else {
-    sendMessage(ws, {
-      type: "error",
-      error: "wrong-code",
-    });
-    return;
-  }
-}
-
-// deno-lint-ignore no-explicit-any
-export function sendMessage(ws: ExtendedWs | undefined, msg: any) {
-  if (!ws || ws.readyState !== 1) return;
-  ws.send(JSON.stringify(msg));
 }
 
 function reqHandler(req: Request) {
@@ -138,15 +39,107 @@ function reqHandler(req: Request) {
     );
   }
   const { socket: ws, response } = Deno.upgradeWebSocket(req);
-  const ews = ws as ExtendedWs;
-  const ipaddress = req.headers.get("x-forwarded-for") ||
-    req.headers.get("host");
 
-  ews.onopen = (ev) => handleConnected(ews, ev);
-  ews.onmessage = (m) => handleMessage(ews, JSON.parse(m.data));
-  ews.onclose = () => handleDisconnect(ews);
-  ews.onerror = (e) => handleError(e);
+  ws.onopen = () => handleConnected(ws, new URL(req.url));
+  ws.onmessage = (m) => wsHandlers.handleMessage(ws, m.data);
+  ws.onclose = () => handleDisconnect(ws);
+  ws.onerror = (e) => handleError(e);
   return response;
+}
+
+async function handleConnected(ws: WebSocket, url: URL) {
+  if (url.pathname === "/reconnect") {
+    handleReconnect(
+      ws,
+      url.searchParams.get("id")!,
+      url.searchParams.get("reconnectCode")!,
+    );
+    return;
+  } else if (url.pathname === "/host") {
+    await handleNewlyConnected(ws, true);
+  } else {
+    if (!handleCheckConnectParamsValid(ws, url)) return;
+    
+    const opponent = url.searchParams.get("id")!;
+    if (!await queueExists(opponent)) {
+        handleConnectRequestOpponentNotFoundError(ws);
+        return;
+    }
+    
+      const id = await handleNewlyConnected(ws, false);
+    createConnectRequest(id, opponent);
+    amqpHandlers.handleSendConnectRequest(
+      id,
+      opponent,
+      url.searchParams.get("code")!,
+    );
+  }
+}
+
+function handleCheckConnectParamsValid(ws: WebSocket, url: URL) {
+  const id = url.searchParams.get("id");
+  const code = url.searchParams.get("code");
+  if (!id || !code) {
+    ws.send(JSON.stringify({
+      type: "error",
+      error: "missing-connect-params",
+    }));
+    ws.close();
+    return false;
+  }
+  return true;
+}
+
+async function handleNewlyConnected(ws: WebSocket, isHost: boolean) {
+  const id = await wsi.connected(ws, isHost);
+  const reconnectCode = await generateReconnectCode(id);
+
+  wsi.sendMessageToId(id, {
+    type: "connected",
+    host: isHost,
+    id: id,
+    reconnectCode: reconnectCode,
+  });
+
+  amqp.createAndSubscribeToIdQueue(
+    id,
+    (message) => amqpHandlers.handleMessage(id, message),
+  );
+
+  return id;
+}
+
+async function handleReconnect(
+  ws: WebSocket,
+  id: string,
+  reconnectCode: string,
+) {
+  if (verifyReconnectCode(id, reconnectCode)) {
+    const newCode = await completeReconnectTransaction(id);
+    wsi.connected(ws, false, id);
+    wsi.sendMessageToId(id, {
+      type: "reconnected",
+      reconnectCode: newCode,
+    });
+  } else {
+    ws.send(JSON.stringify({
+      type: "error",
+      error: "wrong-code",
+    }));
+    ws.close();
+  }
+}
+
+function handleDisconnect(ws: WebSocket) {
+  const id = wsi.getId(ws);
+  if (!id) return;
+  if (existsConnectRequest(id)) removeConnectRequest(id);
+  startReconnectTransaction(id);
+}
+
+export function handleFinalDisconnect(id: string) {
+  wsi.disconnected(id);
+  amqp.destroyQueue(id);
 }
 
 if (isPortAvailableSync({ port: 3000 })) {
