@@ -20,11 +20,14 @@ export function handleMessage(id: string, message: any) {
     case "match-confirmed":
       handleReceiveMatchConfirmedMessage(id, message);
       break;
+    case "move":
+      handleReceiveMoveMessage(id, message);
+      break;
     case "game-closed":
       handleReceiveGameClosed(id);
       break;
     default:
-      console.log("Unexpected AMQP message: " + message);
+      console.log("Unexpected AMQP message: " + JSON.stringify(message));
   }
 }
 
@@ -112,8 +115,8 @@ export function handleSendMoveMessage(
   amqp.publish(game.opponentId, {
     type: "move",
     id: game.selfId,
-    from: BoardPosition,
-    to: BoardPosition,
+    from: from.toString(),
+    to: to.toString(),
     fen: game.getFEN(),
   });
 }
@@ -128,8 +131,10 @@ function handleReceiveMoveMessage(ownId: string, message: any) {
     console.error("Received move message from unexpected client");
     return;
   }
-  game.makeMove(message.from, message.to);
-
+  const from = new BoardPosition(message.from);
+  const to = new BoardPosition(message.to);
+  game.makeMove(from, to);
+  wsHandlers.handleSendMoveMessage(ownId, from, to, game);
 }
 
 export function handleGameClosedMessage(ownId: string) {

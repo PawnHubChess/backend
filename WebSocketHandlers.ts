@@ -103,8 +103,8 @@ export function handleSendMoveMessage(
 ) {
   sendMessageToId(id, {
     type: "receive-move",
-    from: from,
-    to: to,
+    from: from.toString(),
+    to: to.toString(),
     fen: game.getFEN(),
   });
 }
@@ -142,8 +142,8 @@ function parseMoveMessage(id: string, message: any) {
 function handleRejectMove(id: string, message: any, game: Game | undefined) {
   sendMessageToId(id, {
     type: "reject-move",
-    from: message.from,
-    to: message.to,
+    from: message.from.toString(),
+    to: message.to.toString(),
     fen: game?.getFEN(),
   });
 }
@@ -159,8 +159,8 @@ function handleAcceptMove(
 
   sendMessageToId(id, {
     type: "accept-move",
-    from: from,
-    to: to,
+    from: from.toString(),
+    to: to.toString(),
     fen: game.getFEN(),
   });
 }
