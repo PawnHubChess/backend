@@ -90,6 +90,7 @@ function handleCheckConnectParamsValid(ws: WebSocket, url: URL) {
 async function handleNewlyConnected(ws: WebSocket, isHost: boolean) {
   const id = await wsi.connected(ws, isHost);
   const reconnectCode = await generateReconnectCode(id);
+  console.log("New connection", id);
 
   wsi.sendMessageToId(id, {
     type: "connected",

@@ -37,6 +37,7 @@ export async function handleSendConnectRequest(
   code: string,
 ) {
   if (!await amqp.queueExists(recipientId)) return;
+  console.log("Sending connect request to", recipientId);
   await amqp.publish(recipientId, {
     type: "connect-request",
     id: ownId,

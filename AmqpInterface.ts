@@ -17,13 +17,15 @@ export async function subscribe(
   queue: string,
   callback: (message: any) => void,
 ): Promise<void> {
+  console.log("subscribing to ", queue);
   const channel = await getChannel();
 
   await channel.consume(
     { queue: queue, consumerTag: queue },
     async (args, _, data) => {
       await channel.ack({ deliveryTag: args.deliveryTag });
-      
+      console.log("Received message: ", JSON.stringify(data), JSON.stringify(args));
+
       if (args.consumerTag !== queue) return; // todo there must be a better way for this
       const json = JSON.parse(new TextDecoder().decode(data));
       callback(json);
