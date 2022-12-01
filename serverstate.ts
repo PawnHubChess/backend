@@ -1,8 +1,5 @@
-import { ConnectRequest } from "./connectrequest.ts";
 import { wsHandlers, wsi } from "./deps.ts";
-import { ExtendedWs } from "./ExtendedWs.ts";
 import { Game } from "./Game.ts";
-import { sendMessageToId } from "./WebSocketInterface.ts";
 
 const games: Array<Game> = [];
 
@@ -13,11 +10,7 @@ export function createGame(selfId: string, opponentId: string): Game {
 }
 
 export function getGameById(id: string): Game | undefined {
-  return games.find((game) => game.selfId === id || game.opponentId === id);
-}
-
-export function gameExists(hostId: string): boolean {
-  return typeof findGameById(hostId) !== "undefined";
+  return games.find((game) => game.selfId === id);
 }
 
 export function selfInGame(ownId: string): boolean {

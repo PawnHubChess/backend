@@ -1,6 +1,8 @@
 import { handleGameClosedMessage } from "./AmqpHandlers.ts";
+import { BoardPosition } from "./BoardPosition.ts";
 import { King } from "./ChessPieces/King.ts";
 import { amqp, amqpHandlers, wsi } from "./deps.ts";
+import { Game } from "./Game.ts";
 import { createGame, getGameById, selfInGame } from "./serverstate.ts";
 import { safeParseJson } from "./Utils.ts";
 import { sendMessageToId } from "./WebSocketInterface.ts";
@@ -19,6 +21,9 @@ export function handleMessage(ws: WebSocket, data: any) {
     case "accept-attendee-request":
     case "decline-attendee-request":
       handleReceiveConnectResponse(id, message);
+      break;
+    case "send-move":
+      handleReceiveMoveMessage(id, message);
       break;
     case "disconnect":
       handleReceiveDisconnect(id);
@@ -87,6 +92,76 @@ export function handleGetBoard(id: string) {
 
   sendMessageToId(id, {
     type: "board",
+    fen: game.getFEN(),
+  });
+}
+
+export function handleSendMoveMessage(
+  id: string,
+  from: BoardPosition,
+  to: BoardPosition,
+  game: Game,
+) {
+  sendMessageToId(id, {
+    type: "receive-move",
+    from: from,
+    to: to,
+    fen: game.getFEN(),
+  });
+}
+
+function handleReceiveMoveMessage(id: string, message: any) {
+  const parsed = parseMoveMessage(id, message);
+  if (!parsed) return;
+  const { from, to, game } = parsed;
+
+  if (
+    !game.validateMove(from, to) ||
+    !game.validateCorrectPlayerMoved(from, id)
+  ) {
+    handleRejectMove(id, message, game);
+    return;
+  }
+
+  handleAcceptMove(id, from, to, game);
+}
+
+function parseMoveMessage(id: string, message: any) {
+  let game;
+  try {
+    const from = new BoardPosition(message.from);
+    const to = new BoardPosition(message.to);
+    const game = getGameById(id)!;
+    if (!game || !from || !to) return;
+    return { from, to, game };
+  } catch {
+    handleRejectMove(id, message, game);
+    return;
+  }
+}
+
+function handleRejectMove(id: string, message: any, game: Game | undefined) {
+  sendMessageToId(id, {
+    type: "reject-move",
+    from: message.from,
+    to: message.to,
+    fen: game?.getFEN(),
+  });
+}
+
+function handleAcceptMove(
+  id: string,
+  from: BoardPosition,
+  to: BoardPosition,
+  game: Game,
+) {
+  game.makeMove(from, to);
+  amqpHandlers.handleSendMoveMessage(from, to, game);
+
+  sendMessageToId(id, {
+    type: "accept-move",
+    from: from,
+    to: to,
     fen: game.getFEN(),
   });
 }

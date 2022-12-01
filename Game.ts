@@ -1,6 +1,5 @@
 import { Board } from "./Board.ts";
 import { BoardPosition } from "./BoardPosition.ts";
-import { ExtendedWs } from "./ExtendedWs.ts";
 import { sendMessageToId } from "./WebSocketInterface.ts";
 
 export class Game {
@@ -28,18 +27,11 @@ export class Game {
     return this.board.validateMove(from, to);
   }
 
-  makeMove(playerId: string, from: BoardPosition, to: BoardPosition) {
+  makeMove(from: BoardPosition, to: BoardPosition) {
     // Apply change locally
     this.board.move(from, to);
     // Toggle next player
     this.nextMoveWhite = !this.nextMoveWhite;
-    // Relay move to other player
-    this.sendToOpponent(playerId, {
-      type: "receive-move",
-      from: from.toString(),
-      to: to.toString(),
-      fen: this.board.toFEN() + (this.nextMoveWhite ? " w" : " b"),
-    });
   }
 
   sendToOpponent(id: string, data: any) {

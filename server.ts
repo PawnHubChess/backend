@@ -8,12 +8,6 @@ import {
   wsHandlers,
   wsi,
 } from "./deps.ts";
-import { ExtendedWs } from "./ExtendedWs.ts";
-import {
-  handleDisconnected,
-  handleGetBoard,
-  handleMakeMove,
-} from "./playing.ts";
 import {
   completeReconnectTransaction,
   generateReconnectCode,
@@ -32,18 +26,6 @@ export const flags = parse(Deno.args, {
   boolean: ["debug"],
 });
 if (flags.debug) console.warn("Running in debug mode");
-
-// WebSocket stuff
-
-// Rewire is not yet available for Deno; export for testing
-// deno-lint-ignore no-explicit-any
-function handleMessage(ws: ExtendedWs, data: any) {
-  switch (data.type) {
-    case "send-move":
-      handleMakeMove(ws, data.from, data.to);
-      break;
-  }
-}
 
 function handleError(e: Event | ErrorEvent) {
   console.log(e instanceof ErrorEvent ? e.message : e.type);

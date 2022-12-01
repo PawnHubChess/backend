@@ -1,4 +1,6 @@
+import { BoardPosition } from "./BoardPosition.ts";
 import { amqp, wsHandlers, wsi } from "./deps.ts";
+import { Game } from "./Game.ts";
 import {
   connectRequestMatches,
   createGame,
@@ -101,6 +103,34 @@ function handleReceiveMatchConfirmedMessage(ownId: string, message: any) {
   const opponentId = message.id;
   const game = createGame(ownId, opponentId);
   wsi.sendMatchedMessage(ownId, game);
+}
+
+export function handleSendMoveMessage(
+  from: BoardPosition,
+  to: BoardPosition,
+  game: Game,
+) {
+  amqp.publish(game.opponentId, {
+    type: "move",
+    id: game.selfId,
+    from: BoardPosition,
+    to: BoardPosition,
+    fen: game.getFEN(),
+  });
+}
+
+function handleReceiveMoveMessage(ownId: string, message: any) {
+  const game = getGameById(ownId);
+  if (!game) {
+    console.error("Received move message while not in game");
+    return;
+  }
+  if (message.id !== game.opponentId) {
+    console.error("Received move message from unexpected client");
+    return;
+  }
+  game.makeMove(message.from, message.to);
+  
 }
 
 export function handleGameClosedMessage(ownId: string) {
