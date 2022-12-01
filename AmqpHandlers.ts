@@ -1,5 +1,5 @@
 import { BoardPosition } from "./BoardPosition.ts";
-import { amqp, wsHandlers, wsi } from "./deps.ts";
+import { amqp, wsHandlers, wsi } from "./deps_int.ts";
 import { Game } from "./Game.ts";
 import {
   connectRequestMatches,
