@@ -1,9 +1,5 @@
 import { queueExists } from "./AmqpInterface.ts";
-import {
-  isPortAvailableSync,
-  parse,
-  serve,
-} from "./deps.ts";
+import { isPortAvailableSync, parse, serve } from "./deps.ts";
 import { amqp, amqpHandlers, wsHandlers, wsi } from "./deps_int.ts";
 import {
   completeReconnectTransaction,
@@ -56,14 +52,14 @@ async function handleConnected(ws: WebSocket, url: URL) {
     await handleNewlyConnected(ws, true);
   } else {
     if (!handleCheckConnectParamsValid(ws, url)) return;
-    
+
     const opponent = url.searchParams.get("id")!;
     if (!await queueExists(opponent)) {
-        handleConnectRequestOpponentNotFoundError(ws);
-        return;
+      handleConnectRequestOpponentNotFoundError(ws);
+      return;
     }
-    
-      const id = await handleNewlyConnected(ws, false);
+
+    const id = await handleNewlyConnected(ws, false);
     createConnectRequest(id, opponent);
     amqpHandlers.handleSendConnectRequest(
       id,
@@ -101,7 +97,9 @@ async function handleNewlyConnected(ws: WebSocket, isHost: boolean) {
 
   amqp.createAndSubscribeToIdQueue(
     id,
-    (message) => amqpHandlers.handleMessage(id, message),
+    (message) => {
+      amqpHandlers.handleMessage(id, message);
+    },
   );
 
   return id;
@@ -145,4 +143,3 @@ if (isPortAvailableSync({ port: 3000 })) {
 } else {
   console.log("Port 3000 is already in use");
 }
-

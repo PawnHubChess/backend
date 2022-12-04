@@ -1,5 +1,4 @@
 import { getChannel } from "./MessageBrokerChannel.ts";
-import { safeParseJson } from "./Utils.ts";
 
 export const QUEUES = {
   reconnect: "reconnect",
@@ -12,6 +11,7 @@ async function createDefaultQueues() {
   }
 }
 createDefaultQueues();
+const shadowSubscribes = new Map<string, () => void>();
 
 export async function subscribe(
   queue: string,
@@ -25,6 +25,8 @@ export async function subscribe(
       await channel.ack({ deliveryTag: args.deliveryTag });
 
       if (args.consumerTag !== queue) return; // todo there must be a better way for this
+      if (shadowSubscribes.has(queue)) shadowSubscribes.get(queue)!();
+
       const json = JSON.parse(new TextDecoder().decode(data));
       callback(json);
     },
@@ -83,4 +85,21 @@ export async function createAndSubscribeToIdQueue(
 ) {
   await createQueue(id);
   await subscribe(id, callback);
+  sanityCheckOrResubscribe(id, callback);
+}
+
+async function sanityCheckOrResubscribe(
+  id: string,
+  callback: (message: any) => void,
+) {
+  let hasBeenCalled = false;
+  shadowSubscribes.set(id, () => hasBeenCalled = true);
+  await publish(id, { type: "sanityCheck" });
+
+  // Wait 500ms for the message to come back
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  if (!hasBeenCalled) {
+    console.warn("Queue subscription sanity check has failed");
+    createAndSubscribeToIdQueue(id, callback);
+  }
 }
