@@ -23,6 +23,9 @@ export function handleMessage(ws: WebSocket, data: any) {
     case "send-move":
       handleReceiveMoveMessage(id, message);
       break;
+    case "get-board":
+      handleGetBoard(id);
+      break;
     case "disconnect":
       handleReceiveDisconnect(id);
       break;
