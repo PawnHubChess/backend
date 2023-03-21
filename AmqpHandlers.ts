@@ -13,6 +13,7 @@ import {
 import { isHostId } from "./Utils.ts";
 
 export function handleMessage(id: string, message: any) {
+  console.log(`[DEBUG] Received AMQP for id ${id}: ${JSON.stringify(message)}`);
   switch (message.type) {
     case "connect-request":
       handleReceiveConnectRequest(id, message);

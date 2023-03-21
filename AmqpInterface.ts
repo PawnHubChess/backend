@@ -31,6 +31,7 @@ export async function subscribe(
       callback(json);
     },
   );
+  console.log(`[DEBUG] Subscribed to ${queue}`);
 }
 
 export async function unsubscribe(queue: string): Promise<void> {
@@ -39,6 +40,7 @@ export async function unsubscribe(queue: string): Promise<void> {
 }
 
 export async function publish(queue: string, message: any) {
+  console.log(`[DEBUG] Sending AMQP to ${queue}: ${JSON.stringify(message)}`);
   const channel = await getChannel();
   await channel.publish(
     { routingKey: queue },
@@ -51,6 +53,7 @@ export async function publish(queue: string, message: any) {
 export async function createQueue(queue: string) {
   const channel = await getChannel();
   await channel.declareQueue({ queue: queue });
+  console.log(`[DEBUG] Created queue ${queue}`)
 }
 
 // This will DELETE ALL messages in the queue
