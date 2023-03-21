@@ -88,19 +88,19 @@ async function handleNewlyConnected(ws: WebSocket, isHost: boolean) {
   const reconnectCode = await generateReconnectCode(id);
   console.log("New connection", id);
 
+  await amqp.createAndSubscribeToIdQueue(
+    id,
+    (message) => {
+      amqpHandlers.handleMessage(id, message);
+    },
+  );
+
   wsi.sendMessageToId(id, {
     type: "connected",
     host: isHost,
     id: id,
     reconnectCode: reconnectCode,
   });
-
-  amqp.createAndSubscribeToIdQueue(
-    id,
-    (message) => {
-      amqpHandlers.handleMessage(id, message);
-    },
-  );
 
   return id;
 }

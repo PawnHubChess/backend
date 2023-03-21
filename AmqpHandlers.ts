@@ -30,6 +30,9 @@ export function handleMessage(id: string, message: any) {
     case "game-closed":
       handleReceiveGameClosed(id);
       break;
+    case "sanityCheck":
+      console.log(`Received sanityCheck for ${id}`)
+      break;
     default:
       console.log("Unexpected AMQP message: " + JSON.stringify(message));
   }
