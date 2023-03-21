@@ -85,6 +85,7 @@ export async function createAndSubscribeToIdQueue(
 ) {
   await createQueue(id);
   await subscribe(id, callback);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   sanityCheckOrResubscribe(id, callback);
 }
 
