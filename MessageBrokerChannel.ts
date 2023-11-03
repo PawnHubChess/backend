@@ -5,8 +5,10 @@ let channel: AmqpChannel | undefined = undefined;
 let pendingPromise: Promise<AmqpChannel> | undefined = undefined;
 
 export function getChannel(): Promise<AmqpChannel> {
-  if (channel) return new Promise((resolve) => resolve(channel!));
-  if (pendingPromise) return pendingPromise;
+  // `fix: use a fresh amqp channel for every client`
+  // This is worse for performance, but solves a weird bug where queues are not correctly declared if a channel has been used before.
+  //if (channel) return new Promise((resolve) => resolve(channel!));
+  //if (pendingPromise) return pendingPromise;
 
   pendingPromise = openChannel();
   return pendingPromise;

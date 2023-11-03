@@ -52,7 +52,7 @@ export async function publish(queue: string, message: any) {
 // MUST be awaited BEFORE publishing or subscribing
 export async function createQueue(queue: string) {
   const channel = await getChannel();
-  await channel.declareQueue({ queue: queue });
+  await channel.declareQueue({ queue: queue }); // fixme this does not work on a channel that has already been used
   console.log(`[DEBUG] Created queue ${queue}`)
 }
 
@@ -86,10 +86,15 @@ export async function createAndSubscribeToIdQueue(
   id: string,
   callback: (message: any) => void,
 ) {
+  console.log(1)
   await createQueue(id);
+  console.log(2)
   await subscribe(id, callback);
+  console.log(3)
   await new Promise((resolve) => setTimeout(resolve, 1000));
+  console.log(4)
   sanityCheckOrResubscribe(id, callback);
+  console.log(5)
 }
 
 async function sanityCheckOrResubscribe(
