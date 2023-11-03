@@ -27,3 +27,4 @@ Optionally specify a test file to run or filter tests. Tests in the `Communicati
 
 ## Deploying
 Changes made on `main` are automatically deployed to Google Cloud Run. 
+The deployment configured in the `cloudbuild.yaml` file, sot the project can also be deployed using `gcloud run deploy`.
