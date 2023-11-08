@@ -1,5 +1,6 @@
 # Chess:E Backend
-Connecting the [physical chess board](https://github.com/PawnHubChess/client-board) to [our web client](https://github.com/PawnHubChess/client-web).
+The Chess:E backend connects our [physical chess board](https://github.com/PawnHubChess/client-board) and [web client](https://github.com/PawnHubChess/client-web), so users can play against each other.
+Clients communicate via a WebSocket connection with the backend, which handles game logic and stores the game state (though currently not persisted). Clients don't have to be connected to the same backend instance, multiple backend instances communicate via a message broker (LavinMQ).
 
 [![View Docs](https://img.shields.io/badge/View-Docs-c175ff)](https://api.chesse.koeni.dev)
 [![View on CODE Learning Platform](https://img.shields.io/badge/View_on-CODE_Learning_Platform-1e2022)](https://app.code.berlin/projects/cl7ah7xam785660wl8xssnw4ja)
@@ -39,7 +40,7 @@ Optionally specify a test file to run or filter tests. Tests in the `Communicati
 ## Deploying
 
 Changes made on `main` are automatically deployed to Google Cloud Run. 
-The deployment configured in the `cloudbuild.yaml` file, sot the project can also be deployed using `gcloud run deploy`.
+The deployment configured in the `cloudbuild.yaml` file, so the project can also be deployed using `gcloud run deploy`.
 
 ---
 
