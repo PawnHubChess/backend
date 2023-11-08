@@ -27,6 +27,10 @@ steps:
       - "3600"
       - "--port"
       - "3000"
+      - '--set-env-vars'
+      - 'AMQP_HOST=kebnekaise.lmq.cloudamqp.com,AMQP_USER=aqncaupq'
+      - '--update-secrets'
+      - 'AMQP_PASSWORD:version=latest:secret=CloudAMQP_Primary_Broker_Password,AMQP_URL:version=latest:secret=CloudAMQP_Primary_Broker_URL'
 
 images:
   - "gcr.io/$PROJECT_ID/chess-backend"
