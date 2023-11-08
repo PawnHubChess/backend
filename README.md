@@ -11,6 +11,8 @@ connect using a WebSocket to wss://api.chesse.koeni.dev.
 
 ## Chess:E Project Structure
 
+This diagram is a bit outdated but can serve as a general overview ;)
+
 ![image](https://user-images.githubusercontent.com/32238636/202461111-94ce45ba-ff0e-4da6-9200-8476bb357f72.png)
 You are here: Bottom center (backend) / GitHub: backend / Version Control
 
