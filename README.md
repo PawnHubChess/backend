@@ -20,6 +20,8 @@ You are here: Bottom center (backend) / GitHub: backend / Version Control
 
 ![architecture diagram](_docs_assets/architecture.drawio.svg)
 
+You will find a request flow diagram [in the wiki](https://github.com/PawnHubChess/backend/wiki).
+
 ## Running the backend locally
 
 If you have not yet installed Deno, [follow their easy installation guide](https://github.com/denoland/deno/blob/main/README.md).
