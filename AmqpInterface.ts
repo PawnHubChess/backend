@@ -10,7 +10,7 @@ async function createDefaultQueues() {
     await createQueue(queue[1]);
   }
 }
-createDefaultQueues();
+await createDefaultQueues();
 const shadowSubscribes = new Map<string, () => void>();
 
 export async function subscribe(
